@@ -93,7 +93,10 @@ int main(int argc, char **argv)
   unsigned long next_irq = 17897, idle_after_input = 0;
   int boot_done = 0;
   while (cpu.cycles < maxc) {
-    if (cpu.pc.w == scrout_addr) {
+    if (cpu.cycles >= next_irq) { next_irq += 17897; irq_flag = 1; if (mem[0xFF03] & 1) cpu.irq = true; }
+    /* An IRQ taken here returns to this same PC via RTI, so only count the call
+       when the instruction will really execute, or a character prints twice. */
+    if (cpu.pc.w == scrout_addr && !(cpu.irq && !cpu.cc.i)) {
       uint8_t ch = cpu.A;
       if (boot_done) { if (ch == 0x0D) putchar('\n'); else if (ch >= 0x20 && ch < 0x7F) putchar(ch); }
     }
@@ -114,7 +117,6 @@ int main(int argc, char **argv)
       rts(&cpu);
       continue;
     }
-    if (cpu.cycles >= next_irq) { next_irq += 17897; irq_flag = 1; if (mem[0xFF03] & 1) cpu.irq = true; }
     int rc = mc6809_step(&cpu);
     if (rc) { fprintf(stderr, "6809 stopped rc=%d at %04X\n", rc, cpu.instpc); return 2; }
   }

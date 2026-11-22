@@ -43,16 +43,24 @@ The case passes when the two outputs are identical.
 
 ## Regenerating expected output
 
-Only needed when you add or change a case. You need the Dragon BASIC source
-listing (the DragonBasic repository) locally:
+Only needed when you add or change a case. The preferred oracle is a genuine
+Dragon 32 ROM image (16K):
 
-    make rom DRAGONBASIC=/path/to/DragonBasic   # build/oracle/d32.rom
+    make rom D32ROM=/path/to/d32.rom            # copies it to build/oracle/d32.rom
     make expected                               # rewrites tests/expected/
 
-`build_rom.py` assembles the Dragon 32-mode ROM from the source with lwasm.
-The ROM is a local file used only for testing. It is git-ignored and must
-never be committed. You can also point `D32_ROM` at a Dragon 32 ROM image you
-already own.
+Without one, build the ROM from the Dragon BASIC source listing (the
+DragonBasic repository) instead:
+
+    make rom DRAGONBASIC=/path/to/DragonBasic
+
+`build_rom.py` assembles the 32-mode ROM from the source with lwasm. The
+source is Dragon 64 BASIC, so the result is byte-identical to the Dragon 64's
+first ROM (checked against a real dump), which differs from the Dragon 32 ROM
+in 26 small places, mostly Dragon 64 extras and fixes. All starter cases give
+the same output on both. Either way, the ROM is a local file used only for
+testing. It is git-ignored and must never be committed. You can also point
+`D32_ROM` at any ROM image without copying it.
 
 ## Writing cases
 

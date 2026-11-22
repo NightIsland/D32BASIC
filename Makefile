@@ -35,8 +35,13 @@ build/oracle/dragon_oracle: tools/oracle/dragon_oracle.c tools/oracle/mc6809.c t
 	$(CC) -O2 -o $@ tools/oracle/dragon_oracle.c tools/oracle/mc6809.c
 
 rom: | build/oracle
-	@test -n "$(DRAGONBASIC)" || (echo "set DRAGONBASIC=/path/to/DragonBasic (the source repository)"; exit 1)
+ifneq ($(D32ROM),)
+	@test "$$(wc -c < "$(D32ROM)")" -eq 16384 || (echo "$(D32ROM) is not a 16K ROM image"; exit 1)
+	cp "$(D32ROM)" build/oracle/d32.rom
+else
+	@test -n "$(DRAGONBASIC)" || (echo "set D32ROM=/path/to/d32.rom (a Dragon 32 ROM image) or DRAGONBASIC=/path/to/DragonBasic (the source repository)"; exit 1)
 	python3 tools/oracle/build_rom.py "$(DRAGONBASIC)" build/oracle/d32.rom --listing build/oracle/d32.lst
+endif
 
 expected: oracle
 	python3 tests/run.py --expected
