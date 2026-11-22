@@ -1,0 +1,4 @@
+build/
+*.rom
+*.lst
+__pycache__/
