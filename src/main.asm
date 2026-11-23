@@ -1,46 +1,109 @@
 ; D32BASIC - Dragon BASIC for the ZX Spectrum Next
 ; Copyright (C) 2026 the D32BASIC authors. Licensed under the GNU GPL v3.
 ;
-; Step 1 skeleton: boots as a .NEX, and in a TESTMODE build proves the test
-; plumbing by echoing tests' typed input back out through the debug port.
+; Memory map (see docs/spec/memory-map.md):
+;   $0000-$3FFF  interpreter core, RAM pages 16-17 paged over the ROM area
+;   $4000-$4FFF  bank 5: text screen buffer and system variables
+;   $5000-$6FFF  bank 5: boot code and the screen/keyboard runtime
+;   $7000-$7FFF  bank 5: TESTMODE input buffer, boot stack
+;   $8000-$FFFF  BASIC workspace (program, variables, stack, strings)
+; Layer 2 (256x192) lives in banks 9-11.
 
         DEVICE ZXSPECTRUMNEXT
         OPT --zxnext
 
         INCLUDE "config.inc"
+        INCLUDE "sysvars.asm"
 
-        ORG $8000
-start:
+CORE_PAGE       EQU 16
+L2_BANK         EQU 9
+BOOT_STACK      EQU $7000
+WORKSPACE       EQU $8000
+
+; ===========================================================================
+; Bank 5 code: boot and runtime
+; ===========================================================================
+        MMU 2 3, 10
+        ORG $5000
+boot:
         di
-        nextreg $07, 3                  ; CPU to 28 MHz
-        ld sp, stack_top
-        ld a, 4                         ; green border, a nod to the Dragon
-        out ($FE), a
-
+        nextreg $07, 3                  ; 28 MHz
+        ld sp, BOOT_STACK
     IF TESTMODE
-        ld hl, msg_hello
-        call dbg_puts
-        call test_echo_autotype
-        xor a
-        call test_exit                  ; does not return under the harness
+        call load_autotype              ; while RST $08 still reaches esxDOS
     ENDIF
+        nextreg $50, CORE_PAGE          ; core code over the ROM area
+        nextreg $51, CORE_PAGE + 1
+        nextreg $12, L2_BANK            ; Layer 2: 256x192, banks 9-11
+        nextreg $70, 0
+        nextreg $14, $25                ; transparency: a colour we never use
+        nextreg $16, 0
+        nextreg $17, 0
+        nextreg $1C, 1                  ; reset the Layer 2 clip window
+        nextreg $18, 0
+        nextreg $18, 255
+        nextreg $18, 0
+        nextreg $18, 191
+        nextreg $68, $80                ; ULA off: Layer 2 is the screen
+        ld bc, L2_PORT
+        ld a, 2                         ; Layer 2 visible
+        out (c), a
+        xor a                           ; black border
+        out ($FE), a
+        im 1
+        jp cold_start
 
-.idle:  jr .idle
-
+        INCLUDE "rt_screen.asm"
+        INCLUDE "rt_keyboard.asm"
     IF TESTMODE
         INCLUDE "testmode.asm"
-msg_hello:      db "D32BASIC SKELETON", 10, 0
     ENDIF
+bank5_code_end:
+        ASSERT bank5_code_end <= BOOT_STACK - 256
 
-        ds 256
-stack_top:
+; ===========================================================================
+; Core: RAM pages 16-17 at $0000-$3FFF
+; ===========================================================================
+        MMU 0 1, CORE_PAGE
+        ORG $0000
+        di
+        jp boot
 
+        ORG $0038
+; Frame interrupt, 50 Hz.
+isr:
+        push af
+        push bc
+        push de
+        push hl
+        ld hl, (ticker)
+        inc hl
+        ld (ticker), hl
+        ld hl, frames
+        inc (hl)
+        call kb_scan
+        pop hl
+        pop de
+        pop bc
+        pop af
+        ei
+        reti
+
+        ORG $0066
+        retn
+
+        ORG $0070
+        INCLUDE "basic.asm"
+core_end:
+        ASSERT core_end <= $4000
+
+; ===========================================================================
     IF TESTMODE
-        SAVENEX OPEN "build/d32basic-test.nex", start, stack_top
+        SAVENEX OPEN "build/d32basic-test.nex", boot, BOOT_STACK
     ELSE
-        SAVENEX OPEN "build/d32basic.nex", start, stack_top
+        SAVENEX OPEN "build/d32basic.nex", boot, BOOT_STACK
     ENDIF
         SAVENEX CORE 3, 0, 0
-        SAVENEX CFG 4, 0, 0, 0
+        SAVENEX CFG 0, 0, 0, 0
         SAVENEX AUTO
         SAVENEX CLOSE
