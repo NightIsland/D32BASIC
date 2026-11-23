@@ -28,6 +28,12 @@ a call by a small trampoline. Graphics pages do **not** come out of the BASIC
 workspace as they do on a Dragon: `PCLEAR` is accepted and checked, but the
 pixels live in separate Layer 2 RAM.
 
+Dragon programs often reserve memory for machine code with `CLEAR n,addr`,
+where `addr` is a Dragon address below `$8000`. That memory does not exist in
+our workspace, so an `addr` below `$8000` only sets the string space and
+leaves the top of memory where it is, instead of giving `?OM ERROR`. Writes
+with `POKE` to the Dragon's I/O area (`$FF00` up) are ignored.
+
 ## Display
 
 * **Text screen:** 32x16 characters, the Dragon layout, kept in a 512-byte

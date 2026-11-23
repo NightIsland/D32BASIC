@@ -9,8 +9,11 @@ on the SD card. It aims to run Dragon BASIC *programs* (not Dragon machine-code
 software), with the authentic 32x16 green screen, PMODE graphics, `PLAY` and
 `SOUND`. Later versions will add Next hardware features through new PMODEs.
 
-**Status:** step 1 of 4 (foundations). The `.NEX` is a skeleton; the language
-is not implemented yet. See [docs/ROADMAP.md](docs/ROADMAP.md).
+**Status:** step 2 of 4 (core language). You can type, list, edit and run
+programs on the 32x16 text screen: expressions, variables, strings, arrays,
+control flow, `PRINT USING`, `INPUT`, `READ`/`DATA`, `DEF FN`, `RENUM` and the
+maths and string functions all match the Dragon. Graphics, sound and SD card
+files come next. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Building
 

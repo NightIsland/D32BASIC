@@ -13,7 +13,7 @@ Commands:
   run.py                 run every case against the .NEX (default)
   run.py CASE...         run only the named cases
   run.py --expected      regenerate tests/expected/ from the oracle ROM
-  run.py --plumbing      check the harness itself (step 1 skeleton echo test)
+  run.py --plumbing      check the harness itself (types and runs a one-line program)
 
 Environment: JNEXT (jnext binary), D32_ROM (oracle ROM image),
              ORACLE (dragon_oracle binary). Defaults live under build/.
@@ -80,7 +80,7 @@ def main(argv):
             f.write('10 PRINT "PLUMBING"\nRUN\n')
         rc, out = run_nex(f.name)
         os.unlink(f.name)
-        ok = rc == 0 and out == 'D32BASIC SKELETON\n10 PRINT "PLUMBING"\nRUN\n'
+        ok = rc == 0 and out == '10 PRINT "PLUMBING"\nRUN\nPLUMBING\nOK\n'
         print('plumbing', 'PASS' if ok else 'FAIL (rc=%d, output %r)' % (rc, out))
         return 0 if ok else 1
     failed = []

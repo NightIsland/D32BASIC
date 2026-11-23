@@ -31,43 +31,62 @@ F_CLOSE         EQU $9B
 F_READ          EQU $9D
 FA_READ         EQU $01
 
-; Read AUTOTYPE.TXT and echo it to the debug port (step 1 plumbing check).
-test_echo_autotype:
+AUTOTYPE_BUF    EQU $7000           ; bank 5, below the boot stack's page
+AUTOTYPE_MAX    EQU $0FF0
+
+; Load AUTOTYPE.TXT into AUTOTYPE_BUF and set at_ptr/at_end. Must run before
+; RAM is paged over the ROM area, while RST $08 still reaches esxDOS.
+load_autotype:
+        ld hl, AUTOTYPE_BUF
+        ld (at_ptr), hl
+        ld (at_end), hl
         ld a, '*'
         ld ix, autotype_name
         ld b, FA_READ
         rst $08
         db F_OPEN
-        jr c, .missing
-        ld (.handle), a
-.loop:
-        ld a, (.handle)
-        ld ix, io_buffer
-        ld bc, 256
+        ret c
+        push af
+        ld ix, AUTOTYPE_BUF
+        ld bc, AUTOTYPE_MAX
         rst $08
         db F_READ
-        jr c, .done
-        ld a, b
-        or c
-        jr z, .done
-        ld hl, io_buffer
-.out:   ld a, (hl)
-        call dbg_putc
-        inc hl
-        dec bc
-        ld a, b
-        or c
-        jr nz, .out
-        jr .loop
-.done:  ld a, (.handle)
+        jr c, .close
+        ld hl, AUTOTYPE_BUF
+        add hl, bc
+        ld (at_end), hl
+.close: pop af
         rst $08
         db F_CLOSE
         ret
-.missing:
-        ld hl, msg_missing
-        jp dbg_puts
-.handle: db 0
+
+; Next typed character for the line input: A = char. Skips CR (files use
+; CRLF or LF), turns LF into CR, and ends the run when the input is used up.
+test_inchr:
+        push hl
+        push de
+        ld a, 1                     ; the oracle records from the first input
+        ld (dbg_on), a
+.again: ld hl, (at_ptr)
+        ld de, (at_end)
+        or a
+        sbc hl, de
+        jr nc, .end
+        add hl, de
+        ld a, (hl)
+        inc hl
+        ld (at_ptr), hl
+        cp 13
+        jr z, .again
+        cp 10
+        jr nz, .ok
+        ld a, 13
+.ok:    pop de
+        pop hl
+        ret
+.end:   xor a
+        call test_exit
+        di
+        halt
 
 autotype_name:  db "AUTOTYPE.TXT", 0
-msg_missing:    db "NO AUTOTYPE.TXT", 13, 0
-io_buffer:      ds 256
