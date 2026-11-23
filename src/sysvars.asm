@@ -117,6 +117,24 @@ grbtop:         dw 0                ; garbage collection: its address
 garbfl:         db 0                ; nonzero once collected for this request
 inpptr:         dw 0                ; INPUT/READ data pointer
 vartxt:         dw 0                ; INPUT/READ variable list pointer
+usdptr:         dw 0                ; PRINT USING: format string descriptor
+usflg:          db 0                ; PRINT USING: a value was printed
+pumask:         db 0                ; PRINT USING: field flags
+fldwid:         db 0                ; PRINT USING: field width / leading digits
+dpwid:          db 0                ; PRINT USING: point and fraction digits
+usscnt:         db 0                ; PRINT USING: format characters left
+tempx1:         dw 0
+fdecpt:         dw 0                ; PRINT USING: where the point went
+comcnt:         db 0                ; PRINT USING: digits to the next comma
+puptr:          dw 0                ; PRINT USING: output pointer
+rennew:         dw 0                ; RENUM: first new number
+reninc:         dw 0                ; RENUM: step
+renfst:         dw 0                ; RENUM: first old line to renumber
+rfirst:         dw 0                ; RENUM: its number ($FFFF: none)
+rencur:         dw 0                ; RENUM: line being scanned
+renst:          dw 0                ; RENUM: reference text start
+renend:         dw 0                ; RENUM: reference text end
+rbuf:           ds 6                ; RENUM: new reference text
 
 ; ---- floating point accumulators -----------------------------------------
 facexp:         db 0                ; FAC: exponent, 4 mantissa bytes, sign
@@ -161,7 +179,7 @@ nzlink:         db 1                ; nonzero, so CHEAD sees a link
 buflnm:         dw 0                ; line number goes here before BUF
 bufmin:         db 0                ; INPUT stores a comma here
 BUF:            ds BUFLEN + 2
-fbuffr:         ds FBUFLN + 4       ; number formatting
+fbuffr:         ds 40               ; number formatting
 
 sysvars_end:
         ASSERT sysvars_end <= $5000

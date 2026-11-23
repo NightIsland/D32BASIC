@@ -912,6 +912,7 @@ isletc:
         INCLUDE "bas_fout.asm"
         INCLUDE "bas_trans.asm"
         INCLUDE "bas_edit.asm"
+        INCLUDE "bas_using.asm"
 
 ; ---- tables and messages ---------------------------------------------------
         INCLUDE "tables_gen.inc"

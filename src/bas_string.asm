@@ -36,7 +36,7 @@ getspa: push bc
         or a
         sbc hl, de
         jr c, .full
-        ld de, (strend)
+        ld de, (stktop)             ; string space ends at the stack
         or a
         sbc hl, de
         jr c, .full
@@ -211,9 +211,13 @@ fretms: ld de, (lastpt)
 ; ---- garbage collection ----------------------------------------------------
 
 ; Move every string in string space up to the top, highest first.
-garbag: ld hl, (memsiz)
+garbag: push ix
+        call .gc
+        pop ix
+        ret
+.gc:    ld hl, (memsiz)
         ld (fretop), hl
-.pass:  ld hl, (strend)
+.pass:  ld hl, (stktop)
         ld (grbtop), hl             ; highest address found so far
         ld hl, 0
         ld (grbpnt), hl

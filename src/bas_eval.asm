@@ -501,7 +501,9 @@ ptrgt2: ld (varnam), a
 zero5:  db 0, 0, 0, 0, 0
 
 ; An array element. Indices go on the stack, last on top.
-isary:  ld a, (dimflg)
+isary:  xor a                       ; (EVAL's flag is for simple variables)
+        ld (evalflg), a
+        ld a, (dimflg)
         ld b, a
         ld a, (valtyp)
         ld c, a
