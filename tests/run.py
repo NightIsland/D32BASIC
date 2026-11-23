@@ -9,10 +9,16 @@ two machines, and what BASIC prints is compared:
   * our .NEX (TESTMODE build) runs headless in jnext, reads the same keys
     from AUTOTYPE.TXT and writes everything it prints to a debug port.
 
+Cases under tests/next/ test what the Dragon ROM has no part in (disk
+files, Next hardware). Their expected output, tests/next/NAME.txt, is
+written by hand or checked by hand after "run.py --bless NAME". Files in
+tests/next/files/ are put beside the .NEX for every run, as the SD card.
+
 Commands:
   run.py                 run every case against the .NEX (default)
   run.py CASE...         run only the named cases
   run.py --expected      regenerate tests/expected/ from the oracle ROM
+  run.py --bless NAME... store our output as the expected output of next cases
   run.py --plumbing      check the harness itself (types and runs a one-line program)
 
 Environment: JNEXT (jnext binary), D32_ROM (oracle ROM image),
@@ -23,6 +29,8 @@ import difflib, glob, os, shutil, subprocess, sys, tempfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CASES = os.path.join(ROOT, 'tests', 'cases')
 EXPECTED = os.path.join(ROOT, 'tests', 'expected')
+NEXT = os.path.join(ROOT, 'tests', 'next')
+FILES = os.path.join(NEXT, 'files')
 NEX = os.path.join(ROOT, 'build', 'd32basic-test.nex')
 JNEXT = os.environ.get('JNEXT', 'jnext')
 ORACLE = os.environ.get('ORACLE', os.path.join(ROOT, 'build', 'oracle', 'dragon_oracle'))
@@ -39,6 +47,8 @@ def run_nex(case_path):
     with tempfile.TemporaryDirectory() as td:
         shutil.copy(NEX, td)
         shutil.copy(case_path, os.path.join(td, 'AUTOTYPE.TXT'))
+        for f in glob.glob(os.path.join(FILES, '*')):
+            shutil.copy(f, td)
         with open(os.path.join(td, 'exit.jds'), 'w') as f:
             f.write('on io_write %s do\n    exit VALUE\nend\n' % EXIT_PORT)
         cmd = [JNEXT, '--headless', '--no-sdcard',
@@ -59,8 +69,17 @@ def run_oracle(case_path):
     return normalise(r.stdout)
 
 
-def cases(names):
+def expected_path(case):
+    name = os.path.splitext(os.path.basename(case))[0]
+    if os.path.dirname(case) == NEXT:
+        return os.path.join(NEXT, name + '.txt')
+    return os.path.join(EXPECTED, name + '.txt')
+
+
+def cases(names, oracle_only=False):
     all_cases = sorted(glob.glob(os.path.join(CASES, '*.bas')))
+    if not oracle_only:
+        all_cases += sorted(glob.glob(os.path.join(NEXT, '*.bas')))
     if not names:
         return all_cases
     return [c for c in all_cases if any(os.path.basename(c).startswith(n) for n in names)]
@@ -69,11 +88,19 @@ def cases(names):
 def main(argv):
     if '--expected' in argv:
         os.makedirs(EXPECTED, exist_ok=True)
-        for c in cases([a for a in argv if not a.startswith('--')]):
+        for c in cases([a for a in argv if not a.startswith('--')], oracle_only=True):
             out = run_oracle(c)
             name = os.path.splitext(os.path.basename(c))[0]
             open(os.path.join(EXPECTED, name + '.txt'), 'w').write(out)
             print('expected', name)
+        return 0
+    if '--bless' in argv:
+        for c in cases([a for a in argv if not a.startswith('--')]):
+            if os.path.dirname(c) != NEXT:
+                continue
+            rc, out = run_nex(c)
+            open(expected_path(c), 'w').write(out)
+            print('blessed', os.path.basename(c), '(exit %d)' % rc)
         return 0
     if '--plumbing' in argv:
         with tempfile.NamedTemporaryFile('w', suffix='.bas', delete=False) as f:
@@ -86,7 +113,7 @@ def main(argv):
     failed = []
     for c in cases(argv):
         name = os.path.splitext(os.path.basename(c))[0]
-        want = open(os.path.join(EXPECTED, name + '.txt')).read()
+        want = open(expected_path(c)).read()
         rc, got = run_nex(c)
         if rc == 0 and got == want:
             print('PASS', name)

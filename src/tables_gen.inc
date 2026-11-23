@@ -2,8 +2,10 @@
 ; Reserved words: last character has bit 7 set.
 
 NUM_STM         EQU 59
-NUM_NORMAL      EQU 78
-NUM_FUN         EQU 34
+NUM_NORMAL      EQU 104
+TK_DOSFST       EQU $CE
+NUM_DOS         EQU 26
+NUM_FUN         EQU 41
 
 TK_FOR          EQU $80
 TK_GO           EQU $81
@@ -83,6 +85,32 @@ TK_GREATER      EQU $CA
 TK_EQUAL        EQU $CB
 TK_LESS         EQU $CC
 TK_USING        EQU $CD
+TK_AUTO         EQU $CE
+TK_BACKUP       EQU $CF
+TK_BEEP         EQU $D0
+TK_BOOT         EQU $D1
+TK_CHAIN        EQU $D2
+TK_COPY         EQU $D3
+TK_CREATE       EQU $D4
+TK_DIR          EQU $D5
+TK_DRIVE        EQU $D6
+TK_DSKINIT      EQU $D7
+TK_FREAD        EQU $D8
+TK_FWRITE       EQU $D9
+TK_ERROR        EQU $DA
+TK_KILL         EQU $DB
+TK_LOAD         EQU $DC
+TK_MERGE        EQU $DD
+TK_PROTECT      EQU $DE
+TK_WAIT         EQU $DF
+TK_RENAME       EQU $E0
+TK_SAVE         EQU $E1
+TK_SREAD        EQU $E2
+TK_SWRITE       EQU $E3
+TK_VERIFY       EQU $E4
+TK_FROM         EQU $E5
+TK_FLREAD       EQU $E6
+TK_SWAP         EQU $E7
 FN_SGN          EQU $80
 FN_INT          EQU $81
 FN_ABS          EQU $82
@@ -117,6 +145,13 @@ FN_TIMER        EQU $9E
 FN_PPOINT       EQU $9F
 FN_STRINGS      EQU $A0
 FN_USR          EQU $A1
+FN_LOF          EQU $A2
+FN_FREE         EQU $A3
+FN_ERL          EQU $A4
+FN_ERR          EQU $A5
+FN_HIMEM        EQU $A6
+FN_LOC          EQU $A7
+FN_FRES         EQU $A8
 
 reslst:
         db $46,$4F,$D2   ; FOR
@@ -197,6 +232,32 @@ reslst:
         db $BD   ; =
         db $BC   ; <
         db $55,$53,$49,$4E,$C7   ; USING
+        db $41,$55,$54,$CF   ; AUTO
+        db $42,$41,$43,$4B,$55,$D0   ; BACKUP
+        db $42,$45,$45,$D0   ; BEEP
+        db $42,$4F,$4F,$D4   ; BOOT
+        db $43,$48,$41,$49,$CE   ; CHAIN
+        db $43,$4F,$50,$D9   ; COPY
+        db $43,$52,$45,$41,$54,$C5   ; CREATE
+        db $44,$49,$D2   ; DIR
+        db $44,$52,$49,$56,$C5   ; DRIVE
+        db $44,$53,$4B,$49,$4E,$49,$D4   ; DSKINIT
+        db $46,$52,$45,$41,$C4   ; FREAD
+        db $46,$57,$52,$49,$54,$C5   ; FWRITE
+        db $45,$52,$52,$4F,$D2   ; ERROR
+        db $4B,$49,$4C,$CC   ; KILL
+        db $4C,$4F,$41,$C4   ; LOAD
+        db $4D,$45,$52,$47,$C5   ; MERGE
+        db $50,$52,$4F,$54,$45,$43,$D4   ; PROTECT
+        db $57,$41,$49,$D4   ; WAIT
+        db $52,$45,$4E,$41,$4D,$C5   ; RENAME
+        db $53,$41,$56,$C5   ; SAVE
+        db $53,$52,$45,$41,$C4   ; SREAD
+        db $53,$57,$52,$49,$54,$C5   ; SWRITE
+        db $56,$45,$52,$49,$46,$D9   ; VERIFY
+        db $46,$52,$4F,$CD   ; FROM
+        db $46,$4C,$52,$45,$41,$C4   ; FLREAD
+        db $53,$57,$41,$D0   ; SWAP
 
 funlst:
         db $53,$47,$CE   ; SGN
@@ -233,8 +294,15 @@ funlst:
         db $50,$50,$4F,$49,$4E,$D4   ; PPOINT
         db $53,$54,$52,$49,$4E,$47,$A4   ; STRING$
         db $55,$53,$D2   ; USR
+        db $4C,$4F,$C6   ; LOF
+        db $46,$52,$45,$C5   ; FREE
+        db $45,$52,$CC   ; ERL
+        db $45,$52,$D2   ; ERR
+        db $48,$49,$4D,$45,$CD   ; HIMEM
+        db $4C,$4F,$C3   ; LOC
+        db $46,$52,$45,$A4   ; FRE$
 
-; Statement dispatch, $80 to the last statement token.
+; Statement dispatch: $80 to RENUM, then the DragonDOS statements.
 stmdsp:
         dw st_for        ; FOR
         dw st_go         ; GO
@@ -261,8 +329,8 @@ stmdsp:
         dw st_clear      ; CLEAR
         dw st_new        ; NEW
         dw st_def        ; DEF
-        dw st_unimpl     ; CLOAD
-        dw st_unimpl     ; CSAVE
+        dw st_cload      ; CLOAD
+        dw st_csave      ; CSAVE
         dw st_unimpl     ; OPEN
         dw st_unimpl     ; CLOSE
         dw st_unimpl     ; LLIST
@@ -295,6 +363,32 @@ stmdsp:
         dw st_unimpl     ; PLAY
         dw st_unimpl     ; DLOAD
         dw st_renum      ; RENUM
+        dw st_unimpl     ; AUTO
+        dw st_unimpl     ; BACKUP
+        dw st_unimpl     ; BEEP
+        dw st_unimpl     ; BOOT
+        dw st_unimpl     ; CHAIN
+        dw st_unimpl     ; COPY
+        dw st_unimpl     ; CREATE
+        dw st_dir        ; DIR
+        dw st_unimpl     ; DRIVE
+        dw st_unimpl     ; DSKINIT
+        dw st_unimpl     ; FREAD
+        dw st_unimpl     ; FWRITE
+        dw st_unimpl     ; ERROR
+        dw st_kill       ; KILL
+        dw st_load       ; LOAD
+        dw st_merge      ; MERGE
+        dw st_unimpl     ; PROTECT
+        dw st_unimpl     ; WAIT
+        dw st_rename     ; RENAME
+        dw st_save       ; SAVE
+        dw st_unimpl     ; SREAD
+        dw st_unimpl     ; SWRITE
+        dw st_unimpl     ; VERIFY
+        dw st_unimpl     ; FROM
+        dw st_unimpl     ; FLREAD
+        dw st_unimpl     ; SWAP
 
 ; Function dispatch.
 fundsp:
@@ -332,3 +426,10 @@ fundsp:
         dw fn_unimpl     ; PPOINT
         dw fn_string     ; STRING$
         dw fn_usr        ; USR
+        dw fn_unimpl     ; LOF
+        dw fn_unimpl     ; FREE
+        dw fn_unimpl     ; ERL
+        dw fn_unimpl     ; ERR
+        dw fn_unimpl     ; HIMEM
+        dw fn_unimpl     ; LOC
+        dw fn_unimpl     ; FRE$

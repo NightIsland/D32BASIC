@@ -95,6 +95,13 @@ devlcf:         db 0
 devcfw:         db 0
 spcio:          db 0
 eofflg:         db 0
+filein:         db 0                ; nonzero: INLIN reads the open file
+ldrun:          db 0                ; nonzero: RUN once the load ends
+dosfh:          db 0                ; esxDOS handle of the open file, $FF = none
+dbufp:          dw 0                ; next byte in DOSBUF
+dbufn:          dw 0                ; bytes left in DOSBUF (reading)
+fname:          ds 64               ; file name for esxDOS, zero-terminated
+fname2:         ds 64               ; RENAME's new name
 brkflg:         db 0                ; bit 7: print BREAK
 ifcnt:          db 0
 errnum:         db 0                ; error code being reported                ; IFs skipped looking for ELSE

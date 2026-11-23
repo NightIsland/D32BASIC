@@ -25,12 +25,6 @@ test_exit:
         out (c), a
         ret
 
-; esxDOS calls
-F_OPEN          EQU $9A
-F_CLOSE         EQU $9B
-F_READ          EQU $9D
-FA_READ         EQU $01
-
 AUTOTYPE_BUF    EQU $7000           ; bank 5, below the boot stack's page
 AUTOTYPE_MAX    EQU $0FF0
 

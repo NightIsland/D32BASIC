@@ -55,6 +55,7 @@ boot:
 
         INCLUDE "rt_screen.asm"
         INCLUDE "rt_keyboard.asm"
+        INCLUDE "rt_dos.asm"
     IF TESTMODE
         INCLUDE "testmode.asm"
     ENDIF

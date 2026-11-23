@@ -6,3 +6,16 @@ TESTMODE        EQU 0
 ; Ports used only by TESTMODE builds, watched by the jnext test harness.
 DBG_PORT        EQU $10EF           ; text written here goes to the harness log
 EXIT_PORT       EQU $11EF           ; writing here ends the run; value = exit code
+
+; esxDOS calls (RST $08 then this byte) and F_OPEN modes.
+F_OPEN          EQU $9A
+F_CLOSE         EQU $9B
+F_READ          EQU $9D
+F_WRITE         EQU $9E
+F_OPENDIR       EQU $A3
+F_READDIR       EQU $A4
+F_UNLINK        EQU $AD
+F_RENAME        EQU $B0
+FA_READ         EQU $01
+FA_WRITE        EQU $02
+FA_CREATE_AL    EQU $0C             ; create, or truncate if it exists
