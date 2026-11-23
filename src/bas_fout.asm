@@ -18,7 +18,7 @@ fin:    push af
         ld (deccnt), a
         ld (dptflg), a
         pop af
-        jr c, findig
+        jp c, findig
         cp '&'
         jp z, hocons
         cp '-'
@@ -35,7 +35,7 @@ fin1:   cp '.'
         cp 'E'
         jr nz, fine
         call chrget
-        jr c, finedg
+        jp c, finedg
         cp TK_MINUS
         jr z, finec1
         cp '-'
@@ -93,7 +93,7 @@ findig: ld b, a
         ld a, b
         sub '0'
         call finlog
-        jr finc
+        jp finc
 ; FAC = FAC + signed byte A.
 finlog: push af
         call mov1f
@@ -111,7 +111,7 @@ finedg: sub '0'                     ; TENEXP = TENEXP*10 + digit
         add a, a
         add a, c
         ld (tenexp), a
-        jr finec
+        jp finec
 
 ; FOUT: convert the FAC to text at FBUFFR, zero-terminated. Returns HL =
 ; FBUFFR. The first character is '-' or a space.

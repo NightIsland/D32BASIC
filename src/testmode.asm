@@ -65,6 +65,8 @@ load_autotype:
 test_inchr:
         push hl
         push de
+        ld a, 1                     ; the oracle records from the first input
+        ld (dbg_on), a
 .again: ld hl, (at_ptr)
         ld de, (at_end)
         or a

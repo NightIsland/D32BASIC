@@ -277,6 +277,7 @@ isfun:  call chrget
         pop bc
         pop hl
         ld b, e                     ; HL = descriptor, B = the number
+        ld a, c
         jr .disp
 .cls0:  push bc
         call parchk
@@ -565,7 +566,7 @@ isary:  ld a, (dimflg)
         cp (hl)
         pop hl
         jp nz, bserr
-        jr .getdef
+        jp .getdef
 .notfdd:
         ld de, 5                    ; build a new array at STREND
         ld (curtol), de

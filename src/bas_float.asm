@@ -40,7 +40,7 @@ faddc:  or a
         ld a, b
         sub c
         ld b, a
-        jr z, fadd5                     ; no shift
+        jp z, fadd5                     ; no shift
         jr c, fadd1                     ; ARG smaller: shift it
         ld a, b                         ; ARG bigger: it sets exponent, sign
         add a, c
@@ -54,7 +54,7 @@ faddc:  or a
 fadd1:  ld a, b                         ; B <= -8 (signed): shift bytes
         xor $80
         cp $79
-        jr c, fadd5
+        jp c, fadd5
         xor a
         srl (ix+1)
         call rolshf
@@ -128,7 +128,7 @@ zerof1: ld (facexp), a
         ret
 fadd5:  call shiftr
         or a                            ; clear carry
-        jr fadd4
+        jp fadd4
 norm2:  inc b
         ld hl, facov
         sla (hl)

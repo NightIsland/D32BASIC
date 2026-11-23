@@ -271,7 +271,7 @@ datlop: ld (txtptr), hl
         ld a, (hl)
         cp TK_DATA
         jr nz, datlop
-        jr datbk
+        jp datbk
 
 ; ---- DIM ---------------------------------------------------------------------
 st_dim: ld b, 1

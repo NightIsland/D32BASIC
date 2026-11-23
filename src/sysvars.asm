@@ -96,7 +96,8 @@ devcfw:         db 0
 spcio:          db 0
 eofflg:         db 0
 brkflg:         db 0                ; bit 7: print BREAK
-ifcnt:          db 0                ; IFs skipped looking for ELSE
+ifcnt:          db 0
+errnum:         db 0                ; error code being reported                ; IFs skipped looking for ELSE
 txtbeg:         dw 0                ; start of the current statement
 opmask:         db 0                ; FRMEVL: relations seen (> 1, = 2, < 4)
 opptr:          dw 0                ; FRMEVL: operator that ended an operand

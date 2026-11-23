@@ -140,10 +140,10 @@ crunch:
         ld (de), a
         inc de
         call isletc                 ; a letter starts a variable name
-        jr c, .loop
+        jp c, .loop
         ld a, $FF
         ld (invnam), a
-        jr .loop
+        jp .loop
 .found: pop af                      ; drop the start pointer
         pop de
         ld a, b

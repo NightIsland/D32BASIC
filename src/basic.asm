@@ -81,10 +81,6 @@ cold_start:
         call scrtch
         ld hl, msg_banner
         call strout
-    IF TESTMODE
-        ld a, 1                         ; the oracle starts recording here
-        ld (dbg_on), a
-    ENDIF
         jp ready
 
 rnd_seed:       db $80, $4F, $C7, $52, $59
@@ -112,12 +108,16 @@ lserr:  ld e, ERR_LS
         jr error
 ; Report error E ("?xx ERROR [IN line]") and return to the command level.
 error:
+        ld a, e
+        ld (errnum), a
         call stkini
         xor a
         ld (devnum), a
         call condcr
         call outqst
         ld hl, errtab
+        ld a, (errnum)
+        ld e, a
         ld d, 0
         add hl, de
         ld a, (hl)

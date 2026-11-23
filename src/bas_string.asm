@@ -185,12 +185,12 @@ fretmp: push hl
         sbc hl, de
         add hl, de
         jr nz, .nofre
-        ex de, hl
+        push hl
         ld e, b
         ld d, 0
         add hl, de
         ld (fretop), hl
-        ex de, hl
+        pop hl
 .nofre: pop de
 .ret:   ld a, b
         ret
@@ -299,7 +299,7 @@ garbag: ld hl, (memsiz)
         ld (fretop), de
         ld (ix+2), d
         ld (ix+3), e
-        jr .pass
+        jp .pass
 
 ; Note the descriptor at IX if it is the highest string not yet moved.
 gcchk:  ld a, (ix+0)
@@ -704,7 +704,8 @@ fn_pos: call chknum
         jp sngflt
 
 ; MID$(var$, start [, n]) = string$: overwrite part of a string variable.
-lhmid:  call chkopn
+lhmid:  call chrget
+        call chkopn
         call ptrget
         call chkstr
         push hl                     ; the variable
