@@ -456,7 +456,12 @@ st_clear:
         jr z, .cur
         call chkcom
         call evladr                     ; DE = new memory size
-        dec de
+        ld a, d                         ; a Dragon address below our
+        cp WORKSPACE >> 8               ; workspace reserves nothing here:
+        jr nc, .top                     ; keep the current top
+        ld hl, (memsiz)
+        jr .cur
+.top:   dec de
         ld hl, (endmem)
         or a
         sbc hl, de

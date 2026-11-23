@@ -44,7 +44,7 @@ lp_tstop:
         sub TK_GREATER
         jr c, .endrel
         cp 3
-        jr nc, .qop
+        jr nc, .endrel
         cp 1                        ; > = < to bits 1 2 4
         rla
         ld hl, opmask
