@@ -493,11 +493,17 @@ st_clear:
         jr z, .cur
         call chkcom
         call evladr                     ; DE = new memory size
-        ld a, d                         ; a Dragon address below our
-        cp WORKSPACE >> 8               ; workspace reserves nothing here:
-        jr nc, .top                     ; keep the current top
-        ld hl, (memsiz)
+        ld a, d                         ; a Dragon RAM address (1536 up)
+        cp WORKSPACE >> 8               ; is &H7A00 higher here, as for
+        jr nc, .top                     ; PEEK and POKE
+        cp $06
+        jr nc, .dragon
+        ld hl, (memsiz)                 ; below 1536: keep the current top
         jr .cur
+.dragon:
+        ld hl, $7A00
+        add hl, de
+        ex de, hl
 .top:   dec de
         ld hl, (endmem)
         or a

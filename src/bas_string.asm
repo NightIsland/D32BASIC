@@ -479,12 +479,43 @@ fn_val: call lenset
 ; PEEK
 fn_peek:
         call getadr
-        ld a, (de)
-        ld e, a
-        jp sngflt
+        call dmap
+        ld e, 0
+        jr c, .none                 ; the Dragon's system variables
+        ld e, (hl)
+.none:  jp sngflt
 
-; POKE addr, byte. Writes to the Dragon's I/O area ($FF00 up) are ignored:
-; they set up hardware that does not exist here.
+; Map Dragon address DE to ours in HL. Carry set: nothing there (the
+; Dragon's direct page and system variables, 0-1023). A = 1 for the text
+; screen (1024-1535), else 0. Dragon RAM from 1536 (graphics pages, then
+; the program) is 31232 (&H7A00) higher here; 32768 and up is unchanged,
+; so addresses from VARPTR work too.
+dmap:   push bc
+        call .map
+        pop bc
+        ret
+.map:   ld h, d
+        ld l, e
+        ld a, d
+        cp $80
+        jr nc, .same
+        cp $04
+        ret c
+        cp $06
+        jr nc, .ram
+        ld bc, SCRADR - $0400       ; the text screen
+        add hl, bc
+        ld a, 1
+        or a
+        ret
+.ram:   ld bc, $7A00
+        add hl, bc
+.same:  xor a
+        ret
+
+; POKE addr, byte, with Dragon addresses (see DMAP). Writes to the Dragon's
+; I/O area ($FF00 up) and system variables (below 1024) are ignored: they
+; set up hardware, or interpreter state, that does not exist here.
 st_poke:
         call evladr
         push de
@@ -493,9 +524,16 @@ st_poke:
         pop hl
         ld a, h
         inc a
-        ret z
+        ret z                       ; I/O
+        ex de, hl                   ; DE = the address, L = the byte
+        push hl
+        call dmap
+        pop de
+        ret c
         ld (hl), e
-        ret
+        or a
+        jp nz, render_hl            ; the text screen: redraw the cell
+        jp gdirty                   ; a graphics page on show: redraw it
 
 ; INSTR([start,] search$, target$)
 fn_instr:

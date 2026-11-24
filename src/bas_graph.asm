@@ -5,8 +5,7 @@
 ; Graphics memory is laid out exactly as on a Dragon (8 pages of 1.5K from
 ; SCRBAS, the program above the last page PCLEAR keeps), so PPOINT, GET,
 ; PUT, PCOPY and PEEK see the same bytes. Every byte a graphics statement
-; changes is redrawn on Layer 2 at once if it is on show; bytes changed by
-; POKE are not (no 6847 tricks).
+; changes, or POKE writes, is redrawn on Layer 2 at once if it is on show.
 ;
 ; Coordinates follow the Dragon: X 0-255, Y 0-191 whatever the mode,
 ; scaled down for the lower-resolution modes.
