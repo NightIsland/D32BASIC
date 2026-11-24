@@ -334,8 +334,8 @@ stmdsp:
         dw st_unimpl     ; OPEN
         dw st_unimpl     ; CLOSE
         dw st_unimpl     ; LLIST
-        dw st_unimpl     ; SET
-        dw st_unimpl     ; RESET
+        dw st_set        ; SET
+        dw st_reset      ; RESET
         dw st_cls        ; CLS
         dw st_unimpl     ; MOTOR
         dw st_unimpl     ; SOUND
@@ -346,20 +346,20 @@ stmdsp:
         dw st_edit       ; EDIT
         dw st_tron       ; TRON
         dw st_troff      ; TROFF
-        dw st_unimpl     ; LINE
-        dw st_unimpl     ; PCLS
-        dw st_unimpl     ; PSET
-        dw st_unimpl     ; PRESET
-        dw st_unimpl     ; SCREEN
-        dw st_unimpl     ; PCLEAR
-        dw st_unimpl     ; COLOR
+        dw st_line       ; LINE
+        dw st_pcls       ; PCLS
+        dw st_pset       ; PSET
+        dw st_preset     ; PRESET
+        dw st_screen     ; SCREEN
+        dw st_pclear     ; PCLEAR
+        dw st_color      ; COLOR
         dw st_unimpl     ; CIRCLE
         dw st_unimpl     ; PAINT
         dw st_unimpl     ; GET
         dw st_unimpl     ; PUT
         dw st_unimpl     ; DRAW
-        dw st_unimpl     ; PCOPY
-        dw st_unimpl     ; PMODE
+        dw st_pcopy      ; PCOPY
+        dw st_pmode      ; PMODE
         dw st_unimpl     ; PLAY
         dw st_unimpl     ; DLOAD
         dw st_renum      ; RENUM
@@ -417,13 +417,13 @@ fundsp:
         dw fn_left       ; LEFT$
         dw fn_right      ; RIGHT$
         dw fn_mid        ; MID$
-        dw fn_unimpl     ; POINT
+        dw fn_point      ; POINT
         dw fn_inkey      ; INKEY$
         dw fn_mem        ; MEM
         dw fn_varptr     ; VARPTR
         dw fn_instr      ; INSTR
         dw fn_timer      ; TIMER
-        dw fn_unimpl     ; PPOINT
+        dw fn_ppoint     ; PPOINT
         dw fn_string     ; STRING$
         dw fn_usr        ; USR
         dw fn_unimpl     ; LOF

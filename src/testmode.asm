@@ -25,33 +25,42 @@ test_exit:
         out (c), a
         ret
 
-AUTOTYPE_BUF    EQU $7000           ; bank 5, below the boot stack's page
-AUTOTYPE_MAX    EQU $0FF0
+; AUTOTYPE.TXT is kept in its own 8K page. At boot it is read through slot
+; 6 (the workspace is not in use yet); afterwards TEST_INCHR pages it into
+; slot 0 for a moment to fetch each byte. AT_PTR and AT_END are offsets.
+AT_PAGE         EQU 30
+AUTOTYPE_MAX    EQU $2000
 
-; Load AUTOTYPE.TXT into AUTOTYPE_BUF and set at_ptr/at_end. Must run before
-; RAM is paged over the ROM area, while RST $08 still reaches esxDOS.
+; Load AUTOTYPE.TXT and set at_ptr/at_end. Must run before RAM is paged
+; over the ROM area, while RST $08 still reaches esxDOS.
 load_autotype:
-        ld hl, AUTOTYPE_BUF
+        ld hl, 0
         ld (at_ptr), hl
         ld (at_end), hl
+        ld bc, $243B                ; remember slot 6's page
+        ld a, $56
+        out (c), a
+        inc b
+        in a, (c)
+        ld (.slot6 + 3), a
+        nextreg $56, AT_PAGE
         ld a, '*'
         ld ix, autotype_name
         ld b, FA_READ
         rst $08
         db F_OPEN
-        ret c
+        jr c, .slot6
         push af
-        ld ix, AUTOTYPE_BUF
+        ld ix, $C000
         ld bc, AUTOTYPE_MAX
         rst $08
         db F_READ
         jr c, .close
-        ld hl, AUTOTYPE_BUF
-        add hl, bc
-        ld (at_end), hl
+        ld (at_end), bc
 .close: pop af
         rst $08
         db F_CLOSE
+.slot6: nextreg $56, 0              ; operand patched above
         ret
 
 ; Next typed character for the line input: A = char. Skips CR (files use
@@ -67,7 +76,11 @@ test_inchr:
         sbc hl, de
         jr nc, .end
         add hl, de
+        di
+        nextreg $50, AT_PAGE
         ld a, (hl)
+        nextreg $50, CORE_PAGE
+        ei
         inc hl
         ld (at_ptr), hl
         cp 13

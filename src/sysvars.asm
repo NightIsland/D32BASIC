@@ -181,6 +181,42 @@ tempf3:         ds 5
 rndx:           ds 5                ; RND seed (packed float)
 rndtmp:         ds 4
 
+; ---- graphics (Dragon names) ----------------------------------------------
+scrbas:         db 0                ; page of graphics page 1
+scbase:         dw 0                ; start of the current PMODE page
+sctop:          dw 0                ; end of it
+scwid:          db 0                ; bytes a row: 16 or 32
+scmode:         db 0                ; PMODE 0-4
+forclr:         db 0                ; foreground colour (0-3)
+bakclr:         db 0                ; background colour
+actclr:         db 0                ; colour being drawn
+actcle:         db 0                ; it, repeated through a byte
+setflg:         db 0                ; 1 PSET, 0 PRESET
+sccss:          db 0                ; colour set chosen: 0 or 8
+piacss:         db 0                ; colour set on show
+xstore:         dw 0                ; coordinates, little-endian
+ystore:         dw 0
+x2stor:         dw 0
+y2stor:         dw 0
+lsavex:         dw 0                ; end of the last LINE
+lsavey:         dw 0
+pntchf:         db 0                ; PAINT: something changed
+dspon:          db 0                ; nonzero: graphics on show
+dspbase:        dw 0                ; the page on show, from SCREEN
+dsptop:         dw 0
+dspmode:        db 0
+txtcl:          dw 0                ; text colours: light, dark
+grpat:          ds 16               ; renderer: one byte's pixels
+ln_ydec:        db 0                ; LINE: steps and counts
+ln_xdec:        db 0
+ln_major:       db 0
+ln_minor:       db 0
+ln_dy:          dw 0
+ln_cnt:         dw 0
+ln_maj:         dw 0
+ln_min:         dw 0
+ln_acc:         dw 0
+
 ; ---- buffers -------------------------------------------------------------
 nzlink:         db 1                ; nonzero, so CHEAD sees a link
 buflnm:         dw 0                ; line number goes here before BUF

@@ -65,9 +65,10 @@ cold_start:
         ld (allock), a
         ld a, 1
         ld (nzlink), a
+        call grinit                     ; graphics pages, PCLEAR 4
         call grnchr
         ei
-        ld hl, WORKSPACE                ; a zero byte below TXTTAB
+        ld hl, (GRBASE + 24) << 8       ; a zero byte below TXTTAB
         ld (hl), 0
         inc hl
         ld (txttab), hl

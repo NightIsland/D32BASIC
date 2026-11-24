@@ -11,6 +11,8 @@ L2_PORT         EQU $123B
 COL_GREEN       EQU $1C             ; RGB332
 COL_DKGREEN     EQU $04
 COL_BLACK       EQU $00
+COL_ORANGE      EQU $F0
+COL_DKORANGE    EQU $44
 
 ; ---- SCROUT: write character A to the screen at the cursor --------------
 ; BS backs up one cell, CR clears to end of line, other control characters
@@ -24,6 +26,9 @@ scrout:
     IF TESTMODE
         call dbg_echo
     ENDIF
+        push af                     ; output brings the text screen back
+        call samalp
+        pop af
         ld hl, (curadr)
         cp 8
         jr nz, .notbs
@@ -134,14 +139,23 @@ clsfill:
         ldir
         xor a
         ld (l2_scroll), a
-        nextreg $17, a
-        jp render_all
+        ld a, (dspon)               ; graphics on show keep their place
+        or a
+        jr nz, .nos
+        nextreg $17, 0
+.nos:   jp render_all
 
 ; ---- renderer --------------------------------------------------------------
 
 ; Redraw the cell at buffer address HL. Preserves all registers.
 render_hl:
         push af
+        ld a, (dspon)               ; graphics on show: the buffer only
+        or a
+        jr z, .text
+        pop af
+        ret
+.text:
         push bc
         push hl
         ld a, (hl)
@@ -202,10 +216,13 @@ render_cell:
         ; text glyph
         and $40
         jr z, .inverse
-        ld ix, COL_DKGREEN << 8 | COL_GREEN     ; fg dark, bg green
+        ld ix, (txtcl)              ; fg dark, bg light
         jr .glyph
 .inverse:
-        ld ix, COL_GREEN << 8 | COL_DKGREEN
+        ld a, (txtcl)
+        ld ixh, a
+        ld a, (txtcl + 1)
+        ld ixl, a
 .glyph: ld a, e
         and $3F
         ld l, a

@@ -19,7 +19,10 @@ handlers = {"FOR": "st_for", "GO": "st_go", "REM": "st_rem", "'": "st_rem",
             "POKE": "st_poke", "CONT": "st_cont", "LIST": "st_list", "CLEAR": "st_clear",
             "NEW": "st_new", "DEF": "st_def", "CLS": "st_cls", "DEL": "st_del",
             "EDIT": "st_edit", "TRON": "st_tron", "TROFF": "st_troff", "RENUM": "st_renum",
-            "EXEC": "st_exec", "CLOAD": "st_cload", "CSAVE": "st_csave",
+            "EXEC": "st_exec", "PCLEAR": "st_pclear", "PMODE": "st_pmode",
+            "SCREEN": "st_screen", "COLOR": "st_color", "PCLS": "st_pcls",
+            "PCOPY": "st_pcopy", "PSET": "st_pset", "PRESET": "st_preset",
+            "LINE": "st_line", "SET": "st_set", "RESET": "st_reset", "CLOAD": "st_cload", "CSAVE": "st_csave",
             "DIR": "st_dir", "KILL": "st_kill", "LOAD": "st_load", "MERGE": "st_merge",
             "RENAME": "st_rename", "SAVE": "st_save"}
 funh = {"SGN": "fn_sgn", "INT": "fn_int", "ABS": "fn_abs", "POS": "fn_pos", "RND": "fn_rnd",
@@ -28,7 +31,8 @@ funh = {"SGN": "fn_sgn", "INT": "fn_int", "ABS": "fn_abs", "POS": "fn_pos", "RND
         "VAL": "fn_val", "ASC": "fn_asc", "CHR$": "fn_chr", "FIX": "fn_fix", "HEX$": "fn_hex",
         "LEFT$": "fn_left", "RIGHT$": "fn_right", "MID$": "fn_mid", "INKEY$": "fn_inkey",
         "MEM": "fn_mem", "VARPTR": "fn_varptr", "INSTR": "fn_instr", "TIMER": "fn_timer",
-        "STRING$": "fn_string", "USR": "fn_usr"}
+        "STRING$": "fn_string", "USR": "fn_usr",
+        "POINT": "fn_point", "PPOINT": "fn_ppoint"}
 names = {"'": "SNGQ", "TAB(": "TAB", "+": "PLUS", "-": "MINUS", "*": "MUL", "/": "DIV",
          "^": "POW", ">": "GREATER", "=": "EQUAL", "<": "LESS"}
 
