@@ -137,13 +137,88 @@ clsfill:
         ld de, SCRADR + 1
         ld bc, 511
         ldir
-        xor a
-        ld (l2_scroll), a
+        ld e, a
         ld a, (dspon)               ; graphics on show keep their place
         or a
-        jr nz, .nos
+        jr z, .txt
+        xor a
+        ld (l2_scroll), a
+        ret
+.txt:   ld a, e                     ; a cell of one colour (all CLS
+        call cellcol                ; gives)? Then just paint Layer 2
+        jr nz, .slow
+        call l2fill
+        xor a
+        ld (l2_scroll), a
         nextreg $17, 0
-.nos:   jp render_all
+        ret
+.slow:  xor a
+        ld (l2_scroll), a
+        nextreg $17, 0
+        jp render_all
+
+; Z and A = the colour if every pixel of a cell holding A is the same:
+; a text space (normal video) or an empty or full semigraphics block.
+cellcol:
+        bit 7, a
+        jr nz, .sg
+        cp INVSP
+        ret nz
+        ld a, (txtcl)               ; the light background
+        cp a
+        ret
+.sg:    ld e, a
+        and $0F
+        jr z, .blk
+        cp $0F
+        ret nz
+        ld a, e
+        rrca
+        rrca
+        rrca
+        rrca
+        and 7
+        ld hl, sg_colours
+        add a, l
+        ld l, a
+        adc a, h
+        sub l
+        ld h, a
+        ld a, (hl)
+        cp a
+        ret
+.blk:   ld a, COL_BLACK
+        cp a
+        ret
+
+; Paint all of Layer 2 colour A, a third (16K) at a time through the
+; write window at $0000.
+l2fill: ld e, a
+        ld d, $03                   ; write map on, third 0
+.third: ld bc, L2_PORT
+        out (c), d
+        ld hl, 0
+.lp:    ld (hl), e
+        inc l
+        ld (hl), e
+        inc l
+        ld (hl), e
+        inc l
+        ld (hl), e
+        inc l
+        jr nz, .lp
+        inc h
+        ld a, h
+        cp $40
+        jr nz, .lp
+        ld a, d
+        add a, $40
+        ld d, a
+        cp $C3
+        jr nz, .third
+        ld a, 2                     ; write map off, Layer 2 visible
+        out (c), a
+        ret
 
 ; ---- renderer --------------------------------------------------------------
 
