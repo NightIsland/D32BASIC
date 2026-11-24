@@ -32,6 +32,44 @@ snd_tone:
         ld e, d
         jr ay_out
 
+; Set up the sound hardware whatever NextZXOS left: take the AY chips out
+; of reset (NextREG $06 PSG mode 3 holds them), turn TurboSound on (NextREG
+; $08 bit 1) and select AY 1 with both left and right outputs on. Then all
+; three tone channels and the noise are off and the volumes are 0.
+snd_init:
+        di
+        ld bc, $243B
+        ld a, $06
+        out (c), a
+        inc b
+        in a, (c)
+        ld e, a
+        and 3
+        cp 3
+        ld a, e
+        jr nz, .r6
+        and $FC
+        or 1                        ; AY mode
+        out (c), a
+.r6:    dec b
+        ld a, $08
+        out (c), a
+        inc b
+        in a, (c)
+        or $02                      ; TurboSound on
+        out (c), a
+        ei
+        ld bc, AY_REG
+        ld a, $FF                   ; AY 1, left and right on
+        out (c), a
+        ld a, 7
+        ld e, $3F                   ; no tones, no noise
+        call ay_out
+        ld a, 9
+        ld e, 0
+        call ay_out
+        ld a, 10
+        call ay_out
 ; Silence channel A (also called by READY, so an error or BREAK in the
 ; middle of a note leaves no tone hanging).
 snd_off:

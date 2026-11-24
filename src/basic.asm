@@ -66,6 +66,7 @@ cold_start:
         ld a, 1
         ld (nzlink), a
         call joyset
+        call snd_init
         call grinit                     ; graphics pages, PCLEAR 4
         call xrrun
         call grnchr
