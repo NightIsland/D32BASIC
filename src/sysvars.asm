@@ -32,6 +32,7 @@ kb_head:        db 0
 kb_tail:        db 0
 kb_last:        db 0                ; key held, for auto-repeat
 kb_rpt:         db 0                ; repeat countdown
+kb_ext:         ds 2                ; NextREG $B0/$B1 last seen
 inkchr:         db 0                ; key saved by BREAK check for INKEY$
 at_ptr:         dw 0                ; TESTMODE: next AUTOTYPE byte
 at_end:         dw 0                ; TESTMODE: end of AUTOTYPE data

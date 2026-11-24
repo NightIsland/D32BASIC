@@ -9,9 +9,12 @@ start it from the Browser.
 
 1. The green 32x16 screen appears with the banner and `OK`, and the cursor
    blinks.
-2. Typing, `DELETE` (CAPS SHIFT + 0) and the cursor keys work; `BREAK`
+2. Typing works, including every SYMBOL SHIFT symbol (`* - = + < > " ;`
+   and so on). The DELETE key and CAPS SHIFT+5 delete; CAPS SHIFT+0 toggles
+   lower case (shown inverse, as on a Dragon). `BREAK` (or CAPS SHIFT+SPACE)
    stops a running program (`10 GOTO 10`, `RUN`, then BREAK).
-3. `SCREEN 0,1` turns the text orange; `SCREEN 0,0` back to green.
+3. `BYE` returns to NextZXOS.
+3a. `SCREEN 0,1` turns the text orange; `SCREEN 0,0` back to green.
 
 ## SD card files (the riskiest part)
 

@@ -116,6 +116,8 @@ keyinp:
         jp test_inchr
     ELSE
         push hl
+        ld hl, cblcnt               ; show the cursor on the next frame
+        ld (hl), 1
 .wait:  call cblink
         call polcat
         jr z, .wait

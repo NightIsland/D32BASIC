@@ -2,10 +2,14 @@
 ; membrane and a PS/2 keyboard both appear in it) and queues Dragon key
 ; codes. CAPS SHIFT and SYMBOL SHIFT select the second and third tables.
 ;
-; Dragon-specific keys: CAPS+SPACE = BREAK ($03), CAPS+0 or CAPS+5 = left
-; arrow / delete ($08), CAPS+8 = right arrow ($09), CAPS+6 = down ($0A),
-; CAPS+7 = up arrow ($5E, which is also the ^ character), CAPS+1 = CLEAR
-; ($0C), CAPS+2 = toggle lower case (the Dragon's SHIFT+0).
+; Dragon-specific keys: CAPS+SPACE = BREAK ($03), CAPS+5 = left arrow /
+; delete ($08), CAPS+8 = right arrow ($09), CAPS+6 = down ($0A), CAPS+7 =
+; up arrow ($5E, which is also the ^ character), CAPS+1 = CLEAR ($0C),
+; CAPS+0 (the Dragon's SHIFT+0) or CAPS+2 = toggle lower case.
+;
+; The KS2/KS3 keyboard's extra keys (DELETE, BREAK, the arrows, ; " , .
+; and so on) are read from NextREGs $B0/$B1 and kept out of the matrix
+; (NextREG $68 bit 4), so DELETE deletes rather than acting as CAPS+0.
 
 KEY_TOGGLE      EQU $FF             ; internal: alpha lock toggle
 RPT_DELAY       EQU 25              ; frames before auto-repeat
@@ -53,6 +57,31 @@ kb_scan:
         ld e, a
         rlc d
         jr c, .row
+        ; the extra keys: NextREG $B0 = ids 40-47, $B1 = ids 48-55
+        ld bc, $243B                ; (main code selects registers on
+        ld a, $B0                   ; this port only with interrupts off)
+        out (c), a
+        inc b
+        in e, (c)
+        dec b
+        ld a, $B1
+        out (c), a
+        inc b
+        in d, (c)
+        ld hl, kb_ext
+        ld c, 40
+        ld a, (hl)
+        cpl
+        and e
+        ld (hl), e
+        call kb_extnew
+        inc hl
+        ld c, 48
+        ld a, (hl)
+        cpl
+        and d
+        ld (hl), d
+        call kb_extnew
         ; auto-repeat of the held key
         ld a, (kb_last)
         cp $FF
@@ -69,9 +98,47 @@ kb_scan:
         ld a, (kb_last)
         jp kb_queue_index
 
-; Z clear if matrix key A is currently down.
+; Queue the extra keys in A (new presses), ids C upward.
+kb_extnew:
+        ld b, 8
+.lp:    rrca
+        jr nc, .nx
+        push af
+        push bc
+        push hl
+        ld a, c
+        ld (kb_last), a
+        ld a, RPT_DELAY
+        ld (kb_rpt), a
+        ld a, c
+        call kb_queue_index
+        pop hl
+        pop bc
+        pop af
+.nx:    inc c
+        djnz .lp
+        ret
+
+; Z clear if key A (matrix index, or 40 up for an extra key) is down.
 kb_is_down:
-        ld b, 0
+        cp 40
+        jr c, .mat
+        sub 40
+        ld hl, kb_ext
+        cp 8
+        jr c, .eb
+        sub 8
+        inc hl
+.eb:    ld b, a
+        ld a, (hl)
+        inc b
+.es:    dec b
+        jr z, .et
+        rrca
+        jr .es
+.et:    and 1
+        ret
+.mat:   ld b, 0
 .d:     sub 5
         jr c, .got
         inc b
@@ -98,7 +165,15 @@ kb_is_down:
 ; Uses AF, BC, HL.
 kb_queue_index:
         push de
+        cp 40
+        jr c, .matx
+        sub 40                      ; an extra key: no shifts
         ld c, a
+        ld b, 0
+        ld hl, kb_xtab
+        ld e, 1
+        jr .look
+.matx:  ld c, a
         ld b, 0
         ld e, 0                     ; E = 1 unless the plain table
         ld hl, kb_plain
@@ -194,6 +269,11 @@ polcat:
         xor a
         ret
 
+; The extra keys: NextREG $B0 bits 0-7, then $B1 bits 0-7.
+kb_xtab:
+        db 9, 8, 10, $5E, '.', ',', '"', ';'
+        db 0, KEY_TOGGLE, 0, 0, KEY_TOGGLE, 3, $0C, 8
+
 kb_plain:
         db 0,   'Z', 'X', 'C', 'V'
         db 'A', 'S', 'D', 'F', 'G'
@@ -208,19 +288,20 @@ kb_caps:
         db 'A', 'S', 'D', 'F', 'G'
         db 'Q', 'W', 'E', 'R', 'T'
         db $0C, KEY_TOGGLE, 0, 0, 8
-        db 8,   0,   9,   $5E, 10
+        db KEY_TOGGLE, 0, 9, $5E, 10
         db 'P', 'O', 'I', 'U', 'Y'
         db 13,  'L', 'K', 'J', 'H'
         db 3,   0,   'M', 'N', 'B'
 kb_sym:
         db 0,   ':', 0,   '?', '/'
-        db 0,   0,   '\\', 0,  0
+        db 0,   0,   $5C, 0,   0          ; (a quoted backslash is 2 bytes)
         db 0,   0,   0,   '<', '>'
         db '!', '@', '#', '$', '%'
         db '_', ')', '(', "'", '&'
         db '"', ';', 0,   ']', '['
         db 13,  '=', '+', '-', '^'
         db ' ', 0,   '.', ',', '*'
+        ASSERT $ - kb_plain == 120
 
 ; ---- JOYSTK -------------------------------------------------------------------------
 ; The Dragon's joysticks are analogue (0-63 each way). The Next's are
@@ -269,7 +350,8 @@ joyin:  ld hl, potval
 
 ; Make both joystick ports Kempston (port 1 at $1F, port 2 at $37), keeping
 ; the video timing and scandoubler bits of register 5.
-joyset: ld bc, $243B
+joyset: di
+        ld bc, $243B
         ld a, 5
         out (c), a
         inc b
@@ -277,4 +359,33 @@ joyset: ld bc, $243B
         and $05
         or $42
         out (c), a
+        ei
         ret
+
+; ---- BYE ------------------------------------------------------------------------------
+; BYE typed as a direct command (it is not a Dragon keyword, so it is not
+; tokenised and cannot appear in a program) leaves D32BASIC with a soft
+; reset, which returns to NextZXOS. Anything else returns.
+chkbye: ld hl, (txtptr)
+        ld de, .word
+.lp:    ld a, (de)
+        or a
+        jr z, .end
+        ld c, a
+        ld a, (hl)
+        and $DF                     ; either case
+        cp c
+        ret nz
+        inc hl
+        inc de
+        jr .lp
+.end:   ld a, (hl)
+        inc hl
+        cp ' '
+        jr z, .end
+        or a
+        ret nz
+        di
+        nextreg $02, $01            ; soft reset
+        halt
+.word:  db "BYE", 0
