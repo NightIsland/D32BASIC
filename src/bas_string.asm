@@ -737,6 +737,16 @@ fn_varptr:
         call ptrget
         call chkcls
         ex de, hl
+; The Dragon's address for DE: Dragon RAM is &H7A00 higher here (see
+; DMAP), so &H8000-&HF9FF gives 1536-32767. Above that, our own address.
+dragad: ld a, d
+        cp $80
+        jp c, givuns
+        cp $FA
+        jp nc, givuns
+        ld hl, -$7A00
+        add hl, de
+        ex de, hl
         jp givuns
 
 ; POS(n)
