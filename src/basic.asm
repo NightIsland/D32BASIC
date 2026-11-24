@@ -160,6 +160,7 @@ main:
         or a
         ld e, ERR_DS
         jp nz, error
+        call chkbye                     ; BYE: back to NextZXOS
         call crunch
         jp gone
 .blank: ld a, (filein)

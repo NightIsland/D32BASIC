@@ -72,7 +72,7 @@ with `POKE` to the Dragon's I/O area (`$FF00` up) are ignored.
 
 | Dragon | Next |
 |---|---|
-| Keyboard matrix (PIA0) | Next membrane and PS/2 keyboard via port `$FE` and NextREGs `$B0`/`$B1`; BREAK is the Next BREAK key, CLEAR is mapped to a spare key. |
+| Keyboard matrix (PIA0) | Next keyboard matrix via port `$FE`, read in the frame interrupt. SYMBOL SHIFT gives the symbols printed on the keys. CAPS SHIFT+0 is the Dragon's SHIFT+0 (lower case toggle); CAPS+5/6/7/8 are the arrows (left arrow deletes, as on the Dragon); CAPS+SPACE is BREAK; CAPS+1 is CLEAR. The KS2/KS3 extra keys (DELETE, BREAK, arrows, `; " , .`, CAPS LOCK, INV VIDEO) are read from NextREGs `$B0`/`$B1` and kept out of the matrix. |
 | 50 Hz field sync IRQ (TIMER, PLAY timing, cursor blink) | ULA frame interrupt (IM 1), 50 Hz. |
 | `SOUND`, `PLAY` (6-bit DAC) | AY chip 1, tone channel A. Notes are equal-tempered (octave 1 C is 65.4 Hz, as on the Dragon); `V0`-`V31` maps to AY levels by loudness; note lengths are timed by the frame interrupt, so they last exactly as long as on a Dragon. |
 | Joysticks (`JOYSTK`) | Next joystick ports, set to Kempston at start-up. They are digital, so each axis reads 0, 31 or 63. `JOYSTK(0)`/`(1)` are port 1, `(2)`/`(3)` port 2. |

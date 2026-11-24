@@ -43,7 +43,8 @@ boot:
         nextreg $18, 255
         nextreg $18, 0
         nextreg $18, 191
-        nextreg $68, $80                ; ULA off: Layer 2 is the screen
+        nextreg $68, $90                ; ULA off: Layer 2 is the screen;
+                                        ; extra keys kept out of the matrix
         ld bc, L2_PORT
         ld a, 2                         ; Layer 2 visible
         out (c), a
