@@ -408,7 +408,17 @@ gone3:
         call chrget
         cp FN_MIDS
         jp z, lhmid
-        jp snerr
+        cp FN_TIMER
+        jp nz, snerr
+; TIMER = ticks (0-65535) sets the 50 Hz tick count.
+        call chrget
+        ld a, TK_EQUAL
+        call synchr
+        call evladr
+        di
+        ld (ticker), de
+        ei
+        ret
 
 st_unimpl:
         jp snerr

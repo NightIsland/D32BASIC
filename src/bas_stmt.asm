@@ -361,7 +361,9 @@ st_dim: ld b, 1
         jr st_dim
 
 ; ---- DEF FN ------------------------------------------------------------------
-st_def: call getfnm
+st_def: cp $FF
+        jr z, defusr
+        call getfnm
         ld hl, (curlin)             ; not allowed as a direct command
         ld a, h
         and l
@@ -388,6 +390,18 @@ st_def: call getfnm
         jp st_data
 
 ; Find (or make) the function named after FN. FNPNT = its value.
+; DEF USRn = address: accepted and ignored, since USR cannot run Dragon
+; machine code here (USR itself gives ?FC ERROR).
+defusr: call chrget
+        cp FN_USR
+        jp nz, snerr
+        call chrget
+        jr nc, .eq                  ; an optional digit
+        call chrget
+.eq:    ld a, TK_EQUAL
+        call synchr
+        jp evladr
+
 getfnm: SYNCHK TK_FN
         ld b, a
         ld a, $80
