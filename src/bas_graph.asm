@@ -600,7 +600,7 @@ fn_ppoint:
 ; LINE [(x1,y1)]-(x2,y2),PSET|PRESET[,B[F]]
 st_line:
         cp TK_INPUT
-        jp z, snerr                 ; LINE INPUT: not in this BASIC
+        jp z, st_lninp
         cp '('
         jr z, .crd
         cp TK_MINUS

@@ -65,7 +65,9 @@ cold_start:
         ld (allock), a
         ld a, 1
         ld (nzlink), a
+        call joyset
         call grinit                     ; graphics pages, PCLEAR 4
+        call xrrun
         call grnchr
         ei
         ld hl, (GRBASE + 24) << 8       ; a zero byte below TXTTAB
@@ -141,6 +143,7 @@ errfin: call strout
         call inprt
 ready:
         call dos_abort
+        call snd_off
         call condcr
         ld hl, msg_ok
         call strout
@@ -170,7 +173,7 @@ main:
 ; A numbered line: delete any old line with that number, then insert.
 main1:
         call linget
-        ld hl, (linnum)
+edtent: ld hl, (linnum)                 ; (EDIT comes here, TXTPTR = BUF)
         ld a, h                         ; BUFLNM is big-endian
         ld (buflnm), a
         ld a, l
@@ -526,6 +529,9 @@ st_clear:
 
 ; RUN [line]
 st_run:
+        push af
+        call xrrun                      ; PLAY and DRAW defaults
+        pop af
         jp z, runc
         cp '"'
         jp z, st_runf
@@ -962,5 +968,5 @@ msg_error:      db " ERROR", 0
 msg_in:         db " IN ", 0
 msg_ok:         db "OK", 13, 0
 msg_break:      db 13, "BREAK", 0
-msg_banner:     db "D32BASIC FOR THE ZX SPECTRUM NEXT", 13
+msg_banner:     db "D32BASIC FOR THE SPECTRUM NEXT", 13
                 db "DRAGON 32 COMPATIBLE BASIC", 13, 13, 0

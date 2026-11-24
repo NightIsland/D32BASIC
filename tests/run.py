@@ -63,7 +63,7 @@ def run_nex(case_path):
 
 
 def run_oracle(case_path):
-    r = subprocess.run([ORACLE, ROM, case_path], capture_output=True, text=True, errors='replace', timeout=600)
+    r = subprocess.run([ORACLE, ROM, case_path, "--max-cycles", "20000000000"], capture_output=True, text=True, errors='replace', timeout=600)
     if r.returncode:
         sys.exit('oracle failed on %s: %s' % (case_path, r.stderr))
     return normalise(r.stdout)

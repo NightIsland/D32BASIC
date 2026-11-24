@@ -9,11 +9,14 @@ on the SD card. It aims to run Dragon BASIC *programs* (not Dragon machine-code
 software), with the authentic 32x16 green screen, PMODE graphics, `PLAY` and
 `SOUND`. Later versions will add Next hardware features through new PMODEs.
 
-**Status:** step 2 of 4 (core language). You can type, list, edit and run
-programs on the 32x16 text screen: expressions, variables, strings, arrays,
-control flow, `PRINT USING`, `INPUT`, `READ`/`DATA`, `DEF FN`, `RENUM` and the
-maths and string functions all match the Dragon. Graphics, sound and SD card
-files come next. See [docs/ROADMAP.md](docs/ROADMAP.md).
+**Status:** step 3 of 4 (the MVP) is code-complete and waiting for checks on
+a real Next. You can type, edit, run, save and load Dragon BASIC programs:
+the whole core language, PMODE graphics (`PSET`, `LINE`, `CIRCLE`, `PAINT`,
+`DRAW`, `GET`/`PUT`, `PCOPY` and the rest, byte-identical to a Dragon), the
+text-screen block graphics, `PLAY` and `SOUND` on the AY chip, `EDIT`,
+`LINE INPUT`, `JOYSTK`, and SD card files (`SAVE`, `LOAD`, `MERGE`, `DIR`,
+`KILL`, `RENAME`, and data files through `OPEN`/`PRINT #-1`/`INPUT #-1`).
+See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Building
 
@@ -43,6 +46,7 @@ regenerate expected output.
 * [docs/spec/float.md](docs/spec/float.md): the floating point format and maths
 * [docs/spec/memory-map.md](docs/spec/memory-map.md): how the Next's memory, screen and hardware are used
 * [docs/testing.md](docs/testing.md): the test harness
+* [docs/ks3-checklist.md](docs/ks3-checklist.md): checks to run on a real Next
 
 ## Licence
 

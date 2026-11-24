@@ -64,6 +64,14 @@ st_print:
         jp z, crdo
         call chkcom
 .notpat:
+        cp '#'                      ; PRINT #device
+        jr nz, .notdev
+        call getdnm
+        call opnock
+        call chrgot
+        jp z, crdo
+        call chkcom
+.notdev:
         cp TK_USING
         jp z, prtusg
 printc: ret z
@@ -139,7 +147,11 @@ strprt: call frefac
 msg_redo:       db "?REDO", 13, 0
 msg_extra:      db "?EXTRA IGNORED", 13, 0
 
-trmnok: ld a, (inpflg)
+trmnok: ld a, (devnum)              ; bad data in a file
+        or a
+        ld e, ERR_FD
+        jp nz, error
+        ld a, (inpflg)
         or a
         jr z, .redo
         ld hl, (datlin)
@@ -160,14 +172,76 @@ st_input:
         ld e, ERR_ID
         jp z, error
         pop af
-        cp '"'
-        jr nz, .noprm
+        call inptdo
+        xor a                       ; back to the screen and keyboard
+        ld (devnum), a
+        ret
+inptdo: call devin                  ; INPUT #device,
+        call prompt
+        ld a, (devnum)
+        or a
+        jr z, .kbd
+        ld hl, BUF - 1              ; a file: start with nothing read
+        ld (hl), 0
+        jp inpcon
+.kbd:   call qinlin
+        ld (hl), ','                ; HL = BUFMIN
+        jp inpcon
+
+; An optional "#device," for INPUT and LINE INPUT. A = the next character.
+devin:  cp '#'
+        ret nz
+        call getdnm
+        call opnick
+        jp chkcom
+
+; An optional "prompt"; for INPUT and LINE INPUT, not shown when reading a
+; file.
+prompt: cp '"'
+        ret nz
         call strtxt
         SYNCHK ';'
-        call strprt
-.noprm: call qinlin
-        ld (hl), ','                ; HL = BUFMIN
-        jr inpcon
+        ld a, (devnum)
+        or a
+        jp z, strprt
+        jp frefac
+
+; LINE INPUT ["prompt";] string-var: the whole line, commas and quotes
+; included. Entered from LINE with A = the INPUT token.
+st_lninp:
+        call chrget
+        push af
+        ld hl, (curlin)             ; not allowed as a direct command
+        ld a, h
+        and l
+        inc a
+        ld e, ERR_ID
+        jp z, error
+        pop af
+        call devin
+        call prompt
+        ld a, (devnum)
+        or a
+        jr z, .kbd
+        call flinln
+        jr .got
+.kbd:   call inlin
+        jr nc, .got
+        xor a                       ; BREAK stops
+        scf
+        jp ender
+.got:   call ptrget
+        ld (forpnt), hl
+        call chkstr
+        ld hl, BUF
+        xor a
+        ld (charac), a
+        ld (endchr), a
+        call strlit
+        call inpcom
+        xor a
+        ld (devnum), a
+        ret
 
 ; Print "? " and read a line. HL = BUFMIN. BREAK stops the program.
 qinlin: call outqst
@@ -196,8 +270,13 @@ inloop: call ptrget
         jr nz, datbk
         ld a, (inpflg)
         or a
-        jr nz, datlop
-        call outqst
+        jp nz, datlop
+        ld a, (devnum)
+        or a
+        jr z, .kq
+        call flinln
+        jr datbk
+.kq:    call outqst
         call qinlin
 datbk:  ld (txtptr), hl
         call chrget
@@ -236,7 +315,7 @@ datbk:  ld (txtptr), hl
         call chrgot
         jr z, .varend
         call chkcom
-        jr inloop
+        jp inloop
 .varend:
         ld hl, (inpptr)
         ld a, (inpflg)

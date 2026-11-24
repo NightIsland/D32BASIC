@@ -331,15 +331,15 @@ stmdsp:
         dw st_def        ; DEF
         dw st_cload      ; CLOAD
         dw st_csave      ; CSAVE
-        dw st_unimpl     ; OPEN
-        dw st_unimpl     ; CLOSE
-        dw st_unimpl     ; LLIST
+        dw st_open       ; OPEN
+        dw st_close      ; CLOSE
+        dw st_llist      ; LLIST
         dw st_set        ; SET
         dw st_reset      ; RESET
         dw st_cls        ; CLS
-        dw st_unimpl     ; MOTOR
-        dw st_unimpl     ; SOUND
-        dw st_unimpl     ; AUDIO
+        dw st_motor      ; MOTOR
+        dw st_sound      ; SOUND
+        dw st_audio      ; AUDIO
         dw st_exec       ; EXEC
         dw st_unimpl     ; SKIPF
         dw st_del        ; DEL
@@ -353,14 +353,14 @@ stmdsp:
         dw st_screen     ; SCREEN
         dw st_pclear     ; PCLEAR
         dw st_color      ; COLOR
-        dw st_unimpl     ; CIRCLE
-        dw st_unimpl     ; PAINT
-        dw st_unimpl     ; GET
-        dw st_unimpl     ; PUT
-        dw st_unimpl     ; DRAW
+        dw st_circle     ; CIRCLE
+        dw st_paint      ; PAINT
+        dw st_get        ; GET
+        dw st_put        ; PUT
+        dw st_draw       ; DRAW
         dw st_pcopy      ; PCOPY
         dw st_pmode      ; PMODE
-        dw st_unimpl     ; PLAY
+        dw st_play       ; PLAY
         dw st_unimpl     ; DLOAD
         dw st_renum      ; RENUM
         dw st_unimpl     ; AUTO
@@ -410,8 +410,8 @@ fundsp:
         dw fn_val        ; VAL
         dw fn_asc        ; ASC
         dw fn_chr        ; CHR$
-        dw fn_unimpl     ; EOF
-        dw fn_unimpl     ; JOYSTK
+        dw fn_eof        ; EOF
+        dw fn_joystk     ; JOYSTK
         dw fn_fix        ; FIX
         dw fn_hex        ; HEX$
         dw fn_left       ; LEFT$

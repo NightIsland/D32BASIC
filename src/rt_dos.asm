@@ -65,6 +65,13 @@ dos_abort:
         xor a
         ld (filein), a
         ld (ldrun), a
+        ld a, (fmode)               ; a data file being written: keep
+        push af                     ; what is buffered
+        xor a
+        ld (fmode), a
+        pop af
+        cp 2
+        call z, dflush
         ld a, (dosfh)
         inc a
         ret z
@@ -87,8 +94,13 @@ dclose: ld a, (dosfh)
         jp c, doserr
         ret
 
-; Open FNAME with mode B. Errors are reported.
-dopen:  ld a, '*'
+; Open FNAME with mode B. Errors are reported; ?AO ERROR if a file is
+; already open.
+dopen:  ld a, (dosfh)
+        inc a
+        ld e, ERR_AO
+        jp nz, error
+        ld a, '*'
         ld ix, fname
         ld l, F_OPEN
         call dos_call
@@ -201,6 +213,13 @@ dflush: push af
 
 ; CHROUT to the file: CR is written as CR LF.
 dos_putc:
+        push af                     ; nothing goes to a file being read
+        ld a, (fmode)
+        dec a
+        jr nz, .w
+        pop af
+        ret
+.w:     pop af
         call dput
         cp 13
         ret nz
@@ -467,6 +486,7 @@ load1:  ld (ldrun), a
         jp z, ready
         xor a
         ld (ldrun), a
+        call xrrun
         jp newstt
 ; A text file: NEW, then take its lines as if they were typed.
 .text:  call dunget
@@ -485,6 +505,7 @@ dos_ldend:
         jp z, ready
         xor a
         ld (ldrun), a
+        call xrrun
         call runc
         jp newstt
 
@@ -667,5 +688,180 @@ st_rename:
         call dos_call
         jp c, doserr
         ret
+
+; ---- data files: OPEN, CLOSE, PRINT #, INPUT #, EOF -------------------------------
+; The Dragon's cassette (device -1) is a file on the SD card here, named as
+; given with ".DAT" added when there is no extension. Device -2, the
+; printer, takes output and throws it away; device 0 is the screen and
+; keyboard. DEVNUM holds 0, 1 (the file) or 2 (the printer).
+
+; "#n" or "n": the device number into DEVNUM. ?DN ERROR unless 0, -1, -2.
+getcdn: call chkcom
+getdnm: cp '#'
+        call z, chrget
+        call frmnum
+        call intcnv                 ; DE = a signed integer
+        ld a, d
+        or e
+        jr z, .set                  ; 0: the screen
+        ld a, d
+        inc a
+        jr nz, dnerr
+        ld a, e
+        cpl                         ; -1 gives 0, -2 gives 1
+        cp 2
+        jr nc, dnerr
+        inc a
+.set:   ld (devnum), a
+        ret
+dnerr:  ld e, ERR_DN
+        jp error
+
+; The device must be open for input (OPNICK) or output (OPNOCK).
+opnick: ld a, (devnum)
+        or a
+        ret z
+        cp 2
+        jp z, fmerr2
+        ld a, (fmode)
+        or a
+        jr z, noerr
+        dec a
+        ret z
+        jp fmerr2
+opnock: ld a, (devnum)
+        dec a
+        ret nz                      ; the screen or printer
+        ld a, (fmode)
+        or a
+        jr z, noerr
+        dec a
+        ret nz
+fmerr2: ld e, ERR_FM
+        jp error
+noerr:  ld e, ERR_NO
+        jp error
+
+; OPEN "I"|"O", #device, "name"
+st_open:
+        call frmevl
+        call frestr                 ; the mode: its first character
+        ld a, b
+        or a
+        jp z, fcerr
+        ld a, (hl)
+        push af
+        call getcdn
+        call chkcom
+        ld de, ext_dat
+        call getnam
+        call chrgot
+        jp nz, snerr
+        ld a, (devnum)
+        ld c, a
+        xor a
+        ld (devnum), a
+        pop af
+        cp 'I'
+        jr z, .in
+        cp 'O'
+        jp nz, fmerr2
+        ld a, c                     ; output: only the file needs opening
+        dec a
+        ret nz
+        ld b, FA_WRITE | FA_CREATE_AL
+        call dopen
+        ld a, 2
+        ld (fmode), a
+        ret
+.in:    ld a, c
+        or a
+        ret z                       ; the keyboard
+        cp 2
+        jp z, fmerr2                ; the printer
+        ld b, FA_READ
+        call dopen
+        ld a, 1
+        ld (fmode), a
+        ret
+
+ext_dat: db ".DAT", 0
+
+; CLOSE [#device[, #device...]]
+st_close:
+        jr z, closit                ; no list: close everything
+.lp:    call getdnm
+        call closit
+        call chrgot
+        ret z
+        call chkcom
+        jr .lp
+closit: xor a
+        ld (devnum), a
+        ld a, (fmode)
+        or a
+        ret z
+        cp 2
+        call z, dflush
+        xor a
+        ld (fmode), a
+        jp dclose
+
+; Read a line of the data file into BUF: CR, LF or CR LF ends it. HL =
+; BUF-1. ?IE ERROR if the end of the file comes first.
+flinln: ld hl, BUF
+        ld b, 0
+.lp:    call dget
+        jr c, .eof
+        cp 10
+        jr z, .end
+        cp 13
+        jr z, .cr
+        ld (hl), a
+        ld a, b
+        cp BUFLEN
+        jr nc, .lp                  ; too long: the rest is lost
+        inc hl
+        inc b
+        jr .lp
+.cr:    call dget                   ; a LF after the CR goes with it
+        jr c, .end
+        cp 10
+        call nz, dunget
+.end:   ld (hl), 0
+        ld hl, BUF - 1
+        ret
+.eof:   ld e, ERR_IE
+        jp error
+
+; EOF(device): -1 at the end of the data file, else 0.
+fn_eof: ld a, (devnum)
+        push af
+        call intcnv
+        ld a, d                     ; (as GETDNM, from the FAC)
+        or e
+        jr z, .dev
+        ld a, d
+        inc a
+        jp nz, dnerr
+        ld a, e
+        cpl
+        cp 2
+        jp nc, dnerr
+        inc a
+.dev:   ld (devnum), a
+        call opnick
+        ld de, 0
+        ld a, (devnum)
+        or a
+        jr z, .fin
+        call dget
+        jr c, .end
+        call dunget
+        jr .fin
+.end:   dec de
+.fin:   pop af
+        ld (devnum), a
+        jp givabf
 
 dosbuf: ds DBUFSZ

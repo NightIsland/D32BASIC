@@ -9,8 +9,12 @@ chrout:
         ld a, (devnum)
         dec a                       ; 1: the open disk file
         jr z, .file
+        dec a                       ; 2: the printer (there is none)
+        jr z, .none
         pop af
         jp scrout
+.none:  pop af
+        ret
 .file:  pop af
         jp dos_putc
 

@@ -98,6 +98,7 @@ eofflg:         db 0
 filein:         db 0                ; nonzero: INLIN reads the open file
 ldrun:          db 0                ; nonzero: RUN once the load ends
 dosfh:          db 0                ; esxDOS handle of the open file, $FF = none
+fmode:          db 0                ; data file: 0 closed, 1 input, 2 output
 dbufp:          dw 0                ; next byte in DOSBUF
 dbufn:          dw 0                ; bytes left in DOSBUF (reading)
 fname:          ds 64               ; file name for esxDOS, zero-terminated
@@ -216,6 +217,43 @@ ln_cnt:         dw 0
 ln_maj:         dw 0
 ln_min:         dw 0
 ln_acc:         dw 0
+xmax:           dw 0                ; the last point in this mode
+ymax:           dw 0
+pntclr:         db 0                ; PAINT: border colour byte
+pdirct:         db 0                ; PAINT: scan direction
+pcount:         dw 0
+pcnt2:          dw 0
+pntstk:         dw 0
+pnttmp:         dw 0
+scdir:          db 0
+sccnt:          dw 0
+cntrx:          dw 0                ; CIRCLE
+cntry:          dw 0
+radius:         dw 0                ; (RADIUS and ASPECT together)
+aspect:         dw 0
+cstrfl:         db 0
+cendps:         dw 0
+cqpos:          dw 0
+gtptfl:         db 0                ; GET/PUT
+ggrpfl:         db 0
+aryidx:         dw 0
+aryfin:         dw 0
+putac0:         db 0
+putac1:         db 0
+drwfl1:         db 0                ; DRAW: N and B
+drwfl2:         db 0
+drwang:         db 0
+drwscl:         db 0
+pstlen:         db 0                ; DRAW/PLAY string being read
+pstptr:         dw 0
+volume:         db 0                ; PLAY: V 0-31
+tempo:          db 0                ; T
+octave:         db 0                ; O, less one
+lnote:          db 0                ; L
+dotflg:         db 0                ; dots after L
+potval:         ds 4                ; JOYSTK values (right x, y, left x, y)
+edtlen:         db 0                ; EDIT: the line length
+edtlst:         db 0                ; EDIT: list the line first
 
 ; ---- buffers -------------------------------------------------------------
 nzlink:         db 1                ; nonzero, so CHEAD sees a link
