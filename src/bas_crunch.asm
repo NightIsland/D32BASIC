@@ -251,6 +251,12 @@ bufchr:
         ret
 
 ; LIST [from][-[to]]
+; LLIST: LIST to the printer. There is none, so the listing goes nowhere.
+st_llist:
+        push af
+        ld a, 2
+        ld (devnum), a
+        pop af
 st_list:
         push af
         call linget

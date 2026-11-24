@@ -4,8 +4,7 @@
 ; Memory map (see docs/spec/memory-map.md):
 ;   $0000-$3FFF  interpreter core, RAM pages 16-17 paged over the ROM area
 ;   $4000-$4FFF  bank 5: text screen buffer and system variables
-;   $5000-$6FFF  bank 5: boot code and the screen/keyboard runtime
-;   $7000-$7FFF  bank 5: TESTMODE input buffer, boot stack
+;   $5000-$7FFF  bank 5: boot code, the runtime and more interpreter code
 ;   $8000-$FFFF  BASIC workspace (program, variables, stack, strings)
 ; Layer 2 (256x192) lives in banks 9-11.
 
@@ -17,7 +16,7 @@
 
 CORE_PAGE       EQU 16
 L2_BANK         EQU 9
-BOOT_STACK      EQU $7000
+BOOT_STACK      EQU $FF00           ; in the workspace, unused at boot
 WORKSPACE       EQU $8000
 
 ; ===========================================================================
@@ -55,11 +54,15 @@ boot:
 
         INCLUDE "rt_screen.asm"
         INCLUDE "rt_keyboard.asm"
+        INCLUDE "rt_dos.asm"
+        INCLUDE "bas_graph.asm"
+        INCLUDE "bas_graph2.asm"
+        INCLUDE "rt_sound.asm"
     IF TESTMODE
         INCLUDE "testmode.asm"
     ENDIF
 bank5_code_end:
-        ASSERT bank5_code_end <= BOOT_STACK - 256
+        ASSERT bank5_code_end <= $8000
 
 ; ===========================================================================
 ; Core: RAM pages 16-17 at $0000-$3FFF

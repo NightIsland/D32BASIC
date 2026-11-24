@@ -221,3 +221,60 @@ kb_sym:
         db '"', ';', 0,   ']', '['
         db 13,  '=', '+', '-', '^'
         db ' ', 0,   '.', ',', '*'
+
+; ---- JOYSTK -------------------------------------------------------------------------
+; The Dragon's joysticks are analogue (0-63 each way). The Next's are
+; digital, so each axis reads 0, 31 (centred) or 63. JOYSTK(0) and (1) are
+; the right joystick (Next port 1), (2) and (3) the left (port 2); as on the
+; Dragon, only JOYSTK(0) reads the sticks and the others give the values it
+; read.
+fn_joystk:
+        call conint
+        ld a, e
+        cp 4
+        jp nc, fcerr
+        or a
+        call z, joyin
+        ld d, 0
+        ld hl, potval
+        add hl, de
+        ld e, (hl)
+        jp sngflt
+
+joyin:  ld hl, potval
+        in a, ($1F)                 ; Kempston 1
+        call .one
+        in a, ($37)                 ; Kempston 2
+.one:   ld c, a
+        ld b, 2                     ; left / right bits
+        call .axis
+        ld a, c                     ; up / down bits
+        rra
+        rra
+        ld c, a
+        ld b, 2
+.axis:  ld a, c
+        and b
+        ld a, 0
+        jr nz, .st
+        ld a, c
+        srl b
+        and b
+        ld a, 63
+        jr nz, .st
+        ld a, 31
+.st:    ld (hl), a
+        inc hl
+        ret
+
+; Make both joystick ports Kempston (port 1 at $1F, port 2 at $37), keeping
+; the video timing and scandoubler bits of register 5.
+joyset: ld bc, $243B
+        ld a, 5
+        out (c), a
+        inc b
+        in a, (c)
+        and $05
+        or $42
+        out (c), a
+        ret

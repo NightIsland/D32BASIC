@@ -5,7 +5,18 @@ CBLVAL          EQU 25              ; cursor blink period in frames
 
 ; Send A to the current output device. Preserves all registers.
 chrout:
-        jp scrout                   ; only the screen for now
+        push af
+        ld a, (devnum)
+        dec a                       ; 1: the open disk file
+        jr z, .file
+        dec a                       ; 2: the printer (there is none)
+        jr z, .none
+        pop af
+        jp scrout
+.none:  pop af
+        ret
+.file:  pop af
+        jp dos_putc
 
 crdo:   ld a, 13
         jr chrout
@@ -96,6 +107,9 @@ inchr:
 chrinp:
         xor a
         ld (eofflg), a
+        ld a, (filein)              ; loading a program from a file?
+        or a
+        jp nz, dos_getc
 ; Keyboard: blink the cursor until a key arrives.
 keyinp:
     IF TESTMODE
@@ -143,7 +157,7 @@ inlin:
         ld a, (eofflg)
         or a
         jr nz, .done
-        ld a, (devnum)
+        ld a, (filein)
         or a
         ld a, c
         jr nz, .noedit
@@ -171,7 +185,8 @@ inlin:
         jr nz, .notcr
 .done:  or a
 .fin:   push af
-        call crdo
+        ld a, 13
+        call .echo1
         ld (hl), 0
         ld hl, BUF - 1
         pop af
@@ -188,5 +203,13 @@ inlin:
         ld (hl), a
         inc hl
         inc b
-.echo:  call chrout
+.echo:  call .echo1
         jr .next
+.echo1: push af                     ; no echo when reading a file
+        ld a, (filein)
+        or a
+        jr nz, .noec
+        pop af
+        jp chrout
+.noec:  pop af
+        ret

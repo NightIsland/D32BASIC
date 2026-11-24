@@ -36,6 +36,10 @@ ERR_NO  EQU 46
 ERR_IE  EQU 48
 ERR_DS  EQU 50
 ERR_NE  EQU 52
+ERR_DF  EQU 54                      ; DragonDOS: disk full
+ERR_FS  EQU 56                      ; DragonDOS: bad file name
+ERR_PT  EQU 58                      ; DragonDOS: protected
+ERR_FE  EQU 60                      ; DragonDOS: file exists
 
 FORSIZ  EQU 18                      ; bytes in a FOR stack entry
 GOSIZ   EQU 5                       ; bytes in a GOSUB stack entry
@@ -54,14 +58,19 @@ cold_start:
         ld (kb_tail), a
         ld (devnum), a
         ld (trcflg), a
+        ld (filein), a
         dec a
+        ld (dosfh), a
         ld (kb_last), a
         ld (allock), a
         ld a, 1
         ld (nzlink), a
+        call joyset
+        call grinit                     ; graphics pages, PCLEAR 4
+        call xrrun
         call grnchr
         ei
-        ld hl, WORKSPACE                ; a zero byte below TXTTAB
+        ld hl, (GRBASE + 24) << 8       ; a zero byte below TXTTAB
         ld (hl), 0
         inc hl
         ld (txttab), hl
@@ -133,6 +142,8 @@ errfin: call strout
         jr z, ready
         call inprt
 ready:
+        call dos_abort
+        call snd_off
         call condcr
         ld hl, msg_ok
         call strout
@@ -143,21 +154,41 @@ main:
         jr c, main
         ld (txtptr), hl
         call chrget
-        jr z, main                      ; blank line
+        jr z, .blank
         jr c, main1                     ; starts with a line number
+        ld a, (filein)                  ; a file may hold only numbered lines
+        or a
+        ld e, ERR_DS
+        jp nz, error
         call crunch
         jp gone
+.blank: ld a, (filein)
+        or a
+        jr z, main
+        ld a, (eofflg)
+        or a
+        jr z, main
+        jp dos_ldend                    ; the end of a file being loaded
 
 ; A numbered line: delete any old line with that number, then insert.
 main1:
         call linget
-        ld hl, (linnum)
+edtent: ld hl, (linnum)                 ; (EDIT comes here, TXTPTR = BUF)
         ld a, h                         ; BUFLNM is big-endian
         ld (buflnm), a
         ld a, l
         ld (buflnm + 1), a
         call crunch                     ; BC = length of crunched line
         ld a, c
+        call insln
+fini:   call runc
+        call cheada
+        jp main
+
+; Insert the line in BUFLNM/BUF-1 (A = its length + 4, LINNUM = its
+; number), replacing any old line with that number. An empty line only
+; deletes. The links are left for CHEADA to rebuild.
+insln:
         ld (count), a
         call fndlin
         jr c, .nodel
@@ -179,7 +210,7 @@ main1:
         ld (vartab), de
 .nodel: ld a, (BUF - 1)                 ; empty line? then only delete
         or a
-        jr z, fini
+        ret z
         ld hl, (vartab)
         ld (hightr), hl
         ld a, (count)
@@ -197,9 +228,7 @@ main1:
         ldir
         ld hl, (highds)
         ld (vartab), hl
-fini:   call runc
-        call cheada
-        jp main
+        ret
 
 ; HL = big-endian link at (DE); DE preserved.
 ld_link:
@@ -355,7 +384,7 @@ gone3:
         cp TK_RENUM + 1
         jr nc, .notst
         sub $80
-        add a, a
+.disp:  add a, a
         ld l, a
         ld h, 0
         ld de, stmdsp
@@ -366,7 +395,13 @@ gone3:
         ld l, a
         call chrget
         jp (hl)
-.notst: cp $FF
+.notst: cp TK_DOSFST
+        jp c, snerr
+        cp TK_DOSFST + NUM_DOS
+        jr nc, .fn
+        sub TK_DOSFST - NUM_STM         ; DOS entries follow RENUM's
+        jr .disp
+.fn:    cp $FF
         jp nz, snerr
         call chrget
         cp FN_MIDS
@@ -494,7 +529,12 @@ st_clear:
 
 ; RUN [line]
 st_run:
+        push af
+        call xrrun                      ; PLAY and DRAW defaults
+        pop af
         jp z, runc
+        cp '"'
+        jp z, st_runf
         call clearc
         jr runc2
 
@@ -923,9 +963,10 @@ isletc:
         INCLUDE "tables_gen.inc"
 
 errtab: db "NFSNRGODFCOVOMULBSDD/0IDTMOSLSSTCNUFFDAODNIOFMNOIEDSNE"
+        db "DFFSPTFE"
 msg_error:      db " ERROR", 0
 msg_in:         db " IN ", 0
 msg_ok:         db "OK", 13, 0
 msg_break:      db 13, "BREAK", 0
-msg_banner:     db "D32BASIC FOR THE ZX SPECTRUM NEXT", 13
+msg_banner:     db "D32BASIC FOR THE SPECTRUM NEXT", 13
                 db "DRAGON 32 COMPATIBLE BASIC", 13, 13, 0

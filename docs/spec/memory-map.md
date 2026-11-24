@@ -1,15 +1,17 @@
 # Memory map on the Next
 
-Initial plan for the MVP. It will be refined as code size becomes known.
+How D32BASIC uses the Next's memory, screen and hardware.
 
 ## Principles
 
 * The interpreter runs as a .NEX with the CPU at 28 MHz and does not use the
-  Spectrum ROM: it has its own keyboard scan, screen output and IM2 interrupt
-  handler. That lets the test harness run it in jnext with no SD card image,
-  and makes it immune to which ROM NextZXOS left paged in.
+  Spectrum ROM: it has its own keyboard scan, screen output and IM 1 frame
+  interrupt handler (at `$0038` in our own RAM). That lets the test harness
+  run it in jnext with no SD card image, and makes it immune to which ROM
+  NextZXOS left paged in.
 * File access goes through `RST $08` esxDOS calls, which NextZXOS provides on
-  real hardware and jnext's esxDOS stand-in provides in tests.
+  real hardware and jnext's esxDOS stand-in provides in tests. A small
+  trampoline in bank 5 pages the ROM back in for each call.
 * The BASIC workspace is one flat 32K block, so every pointer the interpreter
   keeps (TXTTAB, VARTAB, ARYTAB, STREND, FRETOP, MEMSIZ and so on) is a plain
   16-bit address, just as on the Dragon.
@@ -18,15 +20,33 @@ Initial plan for the MVP. It will be refined as code size becomes known.
 
 | Slots | Addresses | Contents |
 |---|---|---|
-| 0-1 | `$0000-$3FFF` | Interpreter core code (RAM paged over the ROM area with NextREG `$50`/`$51`). Restart vectors at the bottom. |
-| 2-3 | `$4000-$7FFF` | Bank 5: system variables (the Dragon's direct page and `$0100-$03FF` equivalents), stacks, the 512-byte text screen buffer, IM2 vector table, and more interpreter code. |
-| 4-7 | `$8000-$FFFF` | BASIC workspace: program text, variables, arrays, string space. 32K, slightly more than a Dragon 32 gives after `PCLEAR 4`. |
+| 0-1 | `$0000-$3FFF` | Interpreter core (RAM pages 16-17 over the ROM area): the interrupt handler at `$0038`, the interpreter loop, tokeniser, expressions, maths, strings, `PRINT`/`INPUT`, `EDIT`, `RENUM`. |
+| 2-3 | `$4000-$7FFF` | Bank 5: system variables, the 512-byte text screen buffer and line buffer (`$4000-$4FFF`), then more code: screen and keyboard drivers, SD files, graphics, `PLAY`/`SOUND`. |
+| 4-7 | `$8000-$FFEF` | BASIC workspace, laid out as on a Dragon: graphics pages first, then program text, variables, arrays, free space, the stack and string space at the top. |
 
-Code that does not fit in slots 0-3 (graphics, PLAY, file commands, error
-messages) lives in extra 8K pages and is paged into slot 1 for the duration of
-a call by a small trampoline. Graphics pages do **not** come out of the BASIC
-workspace as they do on a Dragon: `PCLEAR` is accepted and checked, but the
-pixels live in separate Layer 2 RAM.
+### Graphics pages are in the workspace, as on a Dragon
+
+The first plan kept the PMODE pixels outside the workspace. The built version
+keeps them inside it, in the Dragon's own format, because so many programs
+depend on that: `PCLEAR` moves the program up and down, `PEEK`/`POKE` of the
+graphics pages work, `PCOPY` copies real memory, and `PRINT MEM` gives the
+Dragon's answers.
+
+* The eight possible 1.5K graphics pages start at `$8000` (the Dragon's
+  `$0600`, so the offset is `$7A00`). `PCLEAR 4`, the default, puts the
+  program at `$9801`, with the Dragon's zero byte at `$9800`.
+* Drawing commands write the Dragon bytes. Every byte that changes on the
+  page being shown is also drawn into Layer 2 straight away, and `SCREEN`
+  redraws the whole display, so the picture on the Next always matches the
+  bytes in memory.
+
+### Other pages
+
+| Page | Use |
+|---|---|
+| 16-17 | Interpreter core (slots 0-1). |
+| 18-23 (banks 9-11) | Layer 2, 256x192. Written through the Layer 2 write window (port `$123B`), never mapped over the workspace. |
+| 30 | Test builds only: the keystrokes typed by the harness (`AUTOTYPE.TXT`), read a byte at a time through slot 0. |
 
 Dragon programs often reserve memory for machine code with `CLEAR n,addr`,
 where `addr` is a Dragon address below `$8000`. That memory does not exist in
@@ -38,28 +58,26 @@ with `POKE` to the Dragon's I/O area (`$FF00` up) are ignored.
 
 * **Text screen:** 32x16 characters, the Dragon layout, kept in a 512-byte
   buffer laid out like Dragon video RAM (same character codes, including
-  inverse video and the 4-colour semigraphics blocks), so `PRINT@`, scrolling
-  and `PEEK`/`POKE` of the screen behave the same. The renderer draws each
-  character as an 8x12 glyph from the MC6847 character set into a 256x192
-  Layer 2 bitmap, in the Dragon's green and dark green.
+  inverse video and the semigraphics blocks), so `PRINT@`, scrolling and
+  `PEEK`/`POKE` of the screen behave the same. The renderer draws each
+  character as an 8x12 glyph into the 256x192 Layer 2 bitmap, in green and
+  dark green, or orange with `SCREEN 0,1`.
 * **PMODE graphics:** PMODE 0-4 resolutions and colour sets, drawn into the
-  same 256x192 Layer 2 bitmap (lower resolutions are pixel-doubled). `SCREEN`
-  switches between showing the text buffer and the graphics page.
+  same Layer 2 bitmap (lower resolutions are pixel-doubled). `SCREEN 1`
+  shows the graphics page, `SCREEN 0` the text.
 * **Later (Next extensions):** new PMODE numbers for Next modes such as
   256x192 in 256 colours, 320x256 and sprites, kept isolated from the core.
-
-Layer 2 uses 48K (three 16K banks). The renderer pages it into slot 1
-briefly while drawing, so the BASIC workspace is never touched.
 
 ## Other hardware
 
 | Dragon | Next |
 |---|---|
 | Keyboard matrix (PIA0) | Next membrane and PS/2 keyboard via port `$FE` and NextREGs `$B0`/`$B1`; BREAK is the Next BREAK key, CLEAR is mapped to a spare key. |
-| 50 Hz field sync IRQ (TIMER, PLAY timing, cursor blink) | ULA frame interrupt (IM2), 50 Hz. |
-| `SOUND`, `PLAY` (6-bit DAC) | AY chip 1, tone channels. |
-| Joysticks (`JOYSTK`) | Next joystick ports (Kempston), scaled to 0-63. Later. |
-| Cassette (`CLOAD`, `CSAVE`) and Dragon DOS | Files on the SD card (see below). |
+| 50 Hz field sync IRQ (TIMER, PLAY timing, cursor blink) | ULA frame interrupt (IM 1), 50 Hz. |
+| `SOUND`, `PLAY` (6-bit DAC) | AY chip 1, tone channel A. Notes are equal-tempered (octave 1 C is 65.4 Hz, as on the Dragon); `V0`-`V31` maps to AY levels by loudness; note lengths are timed by the frame interrupt, so they last exactly as long as on a Dragon. |
+| Joysticks (`JOYSTK`) | Next joystick ports, set to Kempston at start-up. They are digital, so each axis reads 0, 31 or 63. `JOYSTK(0)`/`(1)` are port 1, `(2)`/`(3)` port 2. |
+| Cassette (`CLOAD`, `CSAVE`, `OPEN`/`PRINT #-1`/`INPUT #-1`) and Dragon DOS | Files on the SD card (see below). |
+| Printer (`LLIST`, `PRINT #-2`) | None: the output is thrown away. |
 
 ## Files on the SD card
 
@@ -69,3 +87,10 @@ tokenised program, so files can be moved to and from real Dragons and
 emulators. `SAVE "NAME",A` writes plain ASCII. `LOAD` accepts either and
 rebuilds the line links for our memory layout. `CSAVE`/`CLOAD` do the same, so
 old programs that use them still work.
+
+Data files use the cassette's device number: `OPEN "O",#-1,"NAME"` creates
+`NAME.DAT` (when the name has no extension), `PRINT #-1` writes lines ending
+CR LF, and `OPEN "I"`, `INPUT #-1`, `LINE INPUT #-1` and `EOF(-1)` read them
+back (CR, LF or CR LF all end a line). One data file can be open at a time,
+as with the one cassette. A file still open when the program stops is
+written out and closed.
