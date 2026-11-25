@@ -12,7 +12,8 @@ start it from the Browser.
 2. Typing works, including every SYMBOL SHIFT symbol (`* - = + < > " ;`
    and so on). The DELETE key and CAPS SHIFT+5 delete; CAPS SHIFT+0 toggles
    lower case (shown inverse, as on a Dragon). `BREAK` (or CAPS SHIFT+SPACE)
-   stops a running program (`10 GOTO 10`, `RUN`, then BREAK).
+   stops a running program (`10 GOTO 10`, `RUN`, then BREAK). CAPS SHIFT+2
+   pauses a listing or a running program until another key is pressed.
 3. `BYE` returns to NextZXOS.
 3a. `SCREEN 0,1` turns the text orange; `SCREEN 0,0` back to green.
 
