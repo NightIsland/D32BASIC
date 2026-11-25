@@ -405,7 +405,7 @@ gone3:
         jp (hl)
 .notst: cp TK_DOSFST
         jp c, snerr
-        cp TK_DOSFST + NUM_DOS
+        cp TK_DOSFST + NUM_DOS + NUM_EXT
         jr nc, .fn
         sub TK_DOSFST - NUM_STM         ; DOS entries follow RENUM's
         jr .disp

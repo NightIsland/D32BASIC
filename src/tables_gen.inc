@@ -2,9 +2,10 @@
 ; Reserved words: last character has bit 7 set.
 
 NUM_STM         EQU 59
-NUM_NORMAL      EQU 104
+NUM_NORMAL      EQU 106
 TK_DOSFST       EQU $CE
 NUM_DOS         EQU 26
+NUM_EXT         EQU 2
 NUM_FUN         EQU 41
 
 TK_FOR          EQU $80
@@ -111,6 +112,8 @@ TK_VERIFY       EQU $E4
 TK_FROM         EQU $E5
 TK_FLREAD       EQU $E6
 TK_SWAP         EQU $E7
+TK_CD           EQU $E8
+TK_MKDIR        EQU $E9
 FN_SGN          EQU $80
 FN_INT          EQU $81
 FN_ABS          EQU $82
@@ -258,6 +261,8 @@ reslst:
         db $46,$52,$4F,$CD   ; FROM
         db $46,$4C,$52,$45,$41,$C4   ; FLREAD
         db $53,$57,$41,$D0   ; SWAP
+        db $43,$C4   ; CD
+        db $4D,$4B,$44,$49,$D2   ; MKDIR
 
 funlst:
         db $53,$47,$CE   ; SGN
@@ -302,7 +307,7 @@ funlst:
         db $4C,$4F,$C3   ; LOC
         db $46,$52,$45,$A4   ; FRE$
 
-; Statement dispatch: $80 to RENUM, then the DragonDOS statements.
+; Statement dispatch: $80 to RENUM, then the DragonDOS statements and our own.
 stmdsp:
         dw st_for        ; FOR
         dw st_go         ; GO
@@ -389,6 +394,8 @@ stmdsp:
         dw st_unimpl     ; FROM
         dw st_unimpl     ; FLREAD
         dw st_swap       ; SWAP
+        dw st_cd         ; CD
+        dw st_mkdir      ; MKDIR
 
 ; Function dispatch.
 fundsp:

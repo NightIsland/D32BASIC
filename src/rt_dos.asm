@@ -892,3 +892,87 @@ fn_free:
         jp c, doserr
         ld a, $A0 + 9                   ; 512-byte blocks
         jp giv32
+
+; ---- folders: CD and MKDIR (D32BASIC's own) ------------------------------------
+F_MKDIR         EQU $AA
+
+; A path into FNAME, zero-terminated (1-63 characters).
+getpth: call frmevl
+        call frestr                     ; HL = text, B = length
+        ld a, b
+        or a
+        jp z, fserr
+        cp 64
+        jp nc, fserr
+        ld de, fname
+        ld c, b
+        ld b, 0
+        ldir
+        xor a
+        ld (de), a
+        ret
+
+; CD "path": change the current folder; "X:" in front changes the current
+; drive as well. CD alone prints the current drive and folder.
+st_cd:  jr z, .show
+        call getpth
+        ld hl, (fname)                  ; L = the first character, H = the second
+        ld a, h
+        cp ':'
+        jr nz, .dir
+        ld a, l
+        and $DF
+        sub 'A'
+        cp 16
+        jp nc, nedir
+        add a, a
+        add a, a
+        add a, a
+        or 1
+        ld l, M_GETSETDRV
+        call dos_call
+        jp c, nedir
+        ld a, (fname + 2)
+        or a
+        ret z                           ; "D:" alone: just the drive
+.dir:   ld a, '*'
+        ld ix, fname
+        ld l, F_CHDIR
+        call dos_call
+        jp c, doserr
+        ret
+.show:  ld a, '*'
+        ld ix, fname
+        ld l, F_GETCWD
+        call dos_call
+        jp c, doserr
+        ld a, (fname + 1)               ; esxDOS may give the drive or not
+        cp ':'
+        jr z, .path
+        xor a
+        ld l, M_GETSETDRV
+        call dos_call
+        jp c, doserr
+        rrca
+        rrca
+        rrca
+        and $1F
+        add a, 'A'
+        call chrout
+        ld a, ':'
+        call chrout
+.path:  ld hl, fname
+        call strout
+        jp crdo
+nedir:  ld e, ERR_NE
+        jp error
+
+; MKDIR "path": make a folder. ?FE ERROR if it is there already.
+st_mkdir:
+        call getpth
+        ld a, '*'
+        ld ix, fname
+        ld l, F_MKDIR
+        call dos_call
+        jp c, doserr
+        ret
