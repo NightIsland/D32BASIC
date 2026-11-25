@@ -115,6 +115,9 @@ errnum:         db 0                ; error code being reported
 errcod:         db 0                ; ERR
 errlin:         dw 0                ; ERL
 traplin:        dw 0                ; ERROR GOTO line (0 = off)
+autofl:         db 0                ; AUTO on
+autonx:         dw 0                ; AUTO: next line number
+autoinc:        dw 0                ; AUTO: step
 txtbeg:         dw 0                ; start of the current statement
 opmask:         db 0                ; FRMEVL: relations seen (> 1, = 2, < 4)
 opptr:          dw 0                ; FRMEVL: operator that ended an operand

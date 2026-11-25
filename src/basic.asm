@@ -151,10 +151,10 @@ ready:
         ld hl, msg_ok
         call strout
 main:
-        call inlin                      ; HL = BUF-1, carry = BREAK
+        call autoin                     ; HL = BUF-1, carry = BREAK
         ld de, $FFFF
         ld (curlin), de
-        jr c, main
+        jr c, mainbk
         ld (txtptr), hl
         call chrget
         jr z, .blank
@@ -177,6 +177,7 @@ main:
 ; A numbered line: delete any old line with that number, then insert.
 main1:
         call linget
+        call autend                     ; an empty AUTO line
 edtent: ld hl, (linnum)                 ; (EDIT comes here, TXTPTR = BUF)
         ld a, h                         ; BUFLNM is big-endian
         ld (buflnm), a
@@ -188,6 +189,9 @@ edtent: ld hl, (linnum)                 ; (EDIT comes here, TXTPTR = BUF)
 fini:   call runc
         call cheada
         jp main
+mainbk: xor a                           ; BREAK ends AUTO
+        ld (autofl), a
+        jr main
 
 ; Insert the line in BUFLNM/BUF-1 (A = its length + 4, LINNUM = its
 ; number), replacing any old line with that number. An empty line only

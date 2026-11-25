@@ -154,6 +154,7 @@ inlin:
         ld (inkchr), a
         ld hl, BUF
         ld b, 1                     ; characters + 1
+inlinp:                             ; (AUTO: HL, B with a line begun)
 .next:  call inchr
         ld c, a
         ld a, (eofflg)

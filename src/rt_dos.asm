@@ -870,3 +870,25 @@ fn_eof: ld a, (devnum)
         jp givabf
 
 dosbuf: ds DBUFSZ
+
+; FREE [(drive)]: free space on the SD card's current drive, in bytes.
+; Drives 1-4 are a Dragon's; they all mean the current drive here.
+fn_free:
+        call chrgot
+        cp '('
+        jr nz, .cur
+        call chkopn
+        call getbyt
+        call chkcls
+        ld a, e
+        dec a
+        cp 4
+        jr c, .cur
+        ld e, ERR_DN
+        jp error
+.cur:   ld a, '*'
+        ld l, F_GETFREE
+        call dos_call
+        jp c, doserr
+        ld a, $A0 + 9                   ; 512-byte blocks
+        jp giv32

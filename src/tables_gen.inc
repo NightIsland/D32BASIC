@@ -363,9 +363,9 @@ stmdsp:
         dw st_play       ; PLAY
         dw st_unimpl     ; DLOAD
         dw st_renum      ; RENUM
-        dw st_unimpl     ; AUTO
+        dw st_auto       ; AUTO
         dw st_unimpl     ; BACKUP
-        dw st_unimpl     ; BEEP
+        dw st_beep       ; BEEP
         dw st_unimpl     ; BOOT
         dw st_unimpl     ; CHAIN
         dw st_unimpl     ; COPY
@@ -380,7 +380,7 @@ stmdsp:
         dw st_load       ; LOAD
         dw st_merge      ; MERGE
         dw st_unimpl     ; PROTECT
-        dw st_unimpl     ; WAIT
+        dw st_wait       ; WAIT
         dw st_rename     ; RENAME
         dw st_save       ; SAVE
         dw st_unimpl     ; SREAD
@@ -427,9 +427,9 @@ fundsp:
         dw fn_string     ; STRING$
         dw fn_usr        ; USR
         dw fn_unimpl     ; LOF
-        dw fn_unimpl     ; FREE
+        dw fn_free       ; FREE
         dw fn_erl        ; ERL
         dw fn_err        ; ERR
-        dw fn_unimpl     ; HIMEM
+        dw fn_himem      ; HIMEM
         dw fn_unimpl     ; LOC
-        dw fn_unimpl     ; FRE$
+        dw fn_fres       ; FRE$
