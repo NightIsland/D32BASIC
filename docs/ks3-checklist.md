@@ -41,9 +41,21 @@ The esxDOS calls run with interrupts off and the ROM paged in for each call.
 12. `SOUND 89,20` plays middle C for about 1.6 seconds.
 13. `PLAY "T4L8CDEFGABO+C"` plays a scale; `PLAY "V31C V5C"` gets quieter.
 
+## Settings
+
+15. GRAPH opens the settings screen; BREAK leaves it. Try it at `OK` and
+    while `10 PRINT I:I=I+1:GOTO 10` runs: the program's screen comes back
+    and it carries on.
+16. Set a files folder that exists (1), save with ENTER, `SAVE "X"`, and
+    check the file is in that folder. Start D32BASIC again: the setting is
+    still there (`D32BASIC.CFG` beside the `.NEX`).
+17. Set UNSUPPORTED COMMANDS to IGNORE (2): `AUTO:PRINT "HI"` prints HI.
+18. Set the CPU speed (3) to 3.5 MHz: a `FOR` loop runs slower, but
+    `SOUND 89,20` still lasts 1.6 seconds.
+
 ## Joysticks
 
-14. With a joystick in port 1:
+19. With a joystick in port 1:
     `10 PRINT JOYSTK(0);JOYSTK(1):GOTO 10`, `RUN`: values 0, 31 or 63 as
     it moves. Note this sets both joystick ports to Kempston mode.
 

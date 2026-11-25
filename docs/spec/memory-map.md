@@ -94,3 +94,21 @@ CR LF, and `OPEN "I"`, `INPUT #-1`, `LINE INPUT #-1` and `EOF(-1)` read them
 back (CR, LF or CR LF all end a line). One data file can be open at a time,
 as with the one cassette. A file still open when the program stops is
 written out and closed.
+
+## Settings
+
+The GRAPH key opens a settings screen at any time, even while a program
+runs: the polling routine (`POLCAT`) sees the key, saves the 512-byte text
+screen, the cursor and the display state, shows the settings, and puts it
+all back afterwards. The settings are kept in `D32BASIC.CFG`, a plain text
+file in the folder the `.NEX` was started from (found with `F_GETCWD` at
+start-up):
+
+    FOLDER=C:/DRAGON/       programs and data files (empty: the start-up folder)
+    UNSUPPORTED=ERROR       or IGNORE: skip statements D32BASIC does not have
+    SPEED=28                CPU speed in MHz: 3.5, 7, 14 or 28
+
+The files folder is made the esxDOS current folder (`F_CHDIR`), so every
+file command uses it with no change of its own. With `IGNORE`, an
+unsupported statement is skipped like `DATA` (to the next `:` or the end of
+the line); unsupported functions still give `?FC ERROR`.
