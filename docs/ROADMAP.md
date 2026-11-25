@@ -13,10 +13,13 @@
    and `SOUND` on the AY chip; the text-screen block graphics (`SET`,
    `RESET`, `POINT`), `EDIT`, `LINE INPUT`, `JOYSTK`; checks on a real Next;
    a release `.NEX`; the settings screen on the GRAPH key.
-3b. **DragonDOS extras** *(next)*: the DragonDOS BASIC commands that make
-   sense on an SD card: `ERROR GOTO`, `ERR`, `ERL`, `SWAP`, `AUTO`, `BEEP`,
-   `WAIT`, `CHAIN`, `FREE`, `HIMEM`, random-access files and `COPY`. They are
-   checked against the real DragonDOS 1.0 ROM where no disk is needed.
+3b. **DragonDOS extras** *(built; KS3 check next)*: the DragonDOS BASIC
+   commands that make sense on an SD card: `ERROR GOTO`, `ERR`, `ERL`,
+   `SWAP`, `AUTO`, `BEEP`, `WAIT`, `CHAIN`, `COPY`, `FREE`, `HIMEM`, `FRE$`,
+   random-access files (`CREATE`, `FREAD`, `FWRITE`, `FLREAD`, `LOF`,
+   `LOC`), with `PROTECT` and `VERIFY` accepted; plus `CD` and `MKDIR`. Those
+   that need no disk are checked against the real DragonDOS 1.0 ROM. See
+   [dragondos.md](dragondos.md).
 4. **Next extensions**, in small phases, each using only values a Dragon
    refuses so no Dragon program changes: `PMODE 5` (256x192 in 256 colours),
    `PLAY` with three voices, a mouse through `JOYSTK`, `PALETTE`, `PMODE 6`
