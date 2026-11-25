@@ -124,6 +124,7 @@ error:
         call stkini
         xor a
         ld (devnum), a
+        call errtrap                    ; ERROR GOTO
         call condcr
         call outqst
         ld hl, errtab
@@ -554,6 +555,7 @@ st_clear:
 ; RUN [line]
 st_run:
         push af
+        call errclr
         call xrrun                      ; PLAY and DRAW defaults
         pop af
         jp z, runc
@@ -982,6 +984,7 @@ isletc:
         INCLUDE "bas_trans.asm"
         INCLUDE "bas_edit.asm"
         INCLUDE "bas_using.asm"
+        INCLUDE "bas_ddos.asm"
 
 ; ---- tables and messages ---------------------------------------------------
         INCLUDE "tables_gen.inc"

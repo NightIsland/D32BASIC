@@ -375,7 +375,7 @@ stmdsp:
         dw st_unimpl     ; DSKINIT
         dw st_unimpl     ; FREAD
         dw st_unimpl     ; FWRITE
-        dw st_unimpl     ; ERROR
+        dw st_error      ; ERROR
         dw st_kill       ; KILL
         dw st_load       ; LOAD
         dw st_merge      ; MERGE
@@ -388,7 +388,7 @@ stmdsp:
         dw st_unimpl     ; VERIFY
         dw st_unimpl     ; FROM
         dw st_unimpl     ; FLREAD
-        dw st_unimpl     ; SWAP
+        dw st_swap       ; SWAP
 
 ; Function dispatch.
 fundsp:
@@ -428,8 +428,8 @@ fundsp:
         dw fn_usr        ; USR
         dw fn_unimpl     ; LOF
         dw fn_unimpl     ; FREE
-        dw fn_unimpl     ; ERL
-        dw fn_unimpl     ; ERR
+        dw fn_erl        ; ERL
+        dw fn_err        ; ERR
         dw fn_unimpl     ; HIMEM
         dw fn_unimpl     ; LOC
         dw fn_unimpl     ; FRE$

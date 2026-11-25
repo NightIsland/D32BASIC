@@ -110,8 +110,11 @@ setign:         db 0                ; SETUP: 1 = skip unsupported statements
 setspd:         db 3                ; SETUP: NextREG 7 CPU speed (3 = 28 MHz)
 startdir:       ds 128              ; the start-up folder (F_GETCWD)
 brkflg:         db 0                ; bit 7: print BREAK
-ifcnt:          db 0
-errnum:         db 0                ; error code being reported                ; IFs skipped looking for ELSE
+ifcnt:          db 0                ; IFs skipped looking for ELSE
+errnum:         db 0                ; error code being reported
+errcod:         db 0                ; ERR
+errlin:         dw 0                ; ERL
+traplin:        dw 0                ; ERROR GOTO line (0 = off)
 txtbeg:         dw 0                ; start of the current statement
 opmask:         db 0                ; FRMEVL: relations seen (> 1, = 2, < 4)
 opptr:          dw 0                ; FRMEVL: operator that ended an operand
