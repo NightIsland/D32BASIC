@@ -526,6 +526,140 @@ dhead:  call dgetm
         jp nz, fmerr
         ret
 
+; CHAIN "name"[,line]: load a program and run it (from the line, if given)
+; keeping the variables. Only a tokenised (DragonDOS) file can be chained:
+; a text file gives ?FM ERROR.
+st_chain:
+        ld de, ext_bas
+        call getnam
+        ld hl, 0
+        ld (chnlin), hl
+        call chrgot
+        jr z, .open
+        call chkcom
+        jp nc, snerr                    ; a line number must follow
+        call linget
+        ld hl, (linnum)
+        ld (chnlin), hl
+        call chrgot
+        jp nz, snerr
+.open:  ld b, FA_READ
+        call dopen
+        call dget
+        jp c, fmerr
+        cp $55
+        jp nz, fmerr
+        call dhead                      ; DE = length
+        ld (chnlen), de
+        call chnstr                     ; strings out of the old program
+        ld hl, (strend)
+        ld de, (vartab)
+        or a
+        sbc hl, de
+        ld (chnvsz), hl                 ; the variables' size
+        ld hl, -64                      ; park them below the stack
+        add hl, sp
+        ld de, (chnvsz)
+        or a
+        sbc hl, de
+        jp c, omerr
+        ld (chndst), hl
+        ld hl, (txttab)                 ; the new program must end below
+        ld de, (chnlen)
+        add hl, de
+        jp c, omerr
+        inc hl
+        inc hl
+        ex de, hl
+        ld hl, (chndst)
+        or a
+        sbc hl, de
+        jp c, omerr
+        ld hl, (vartab)
+        ld de, (chndst)
+        ld bc, (chnvsz)
+        call memmov
+        ld hl, (txttab)
+        ld bc, (chnlen)
+.rd:    ld a, b
+        or c
+        jr z, .rdend
+        call dgetm
+        ld (hl), a
+        inc hl
+        dec bc
+        jr .rd
+.rdend: xor a
+        ld (hl), a
+        inc hl
+        ld (hl), a
+        call dclose
+        call cheada
+        ld hl, (txttab)                 ; DE = after the zero link
+.fend:  ld a, (hl)
+        inc hl
+        or (hl)
+        dec hl
+        jr z, .found
+        ld a, (hl)
+        inc hl
+        ld l, (hl)
+        ld h, a
+        jr .fend
+.found: inc hl
+        inc hl
+        push hl
+        ld de, (vartab)                 ; ARYTAB and STREND move with them
+        or a
+        sbc hl, de                      ; HL = new - old
+        ex de, hl
+        ld hl, (arytab)
+        add hl, de
+        ld (arytab), hl
+        ld hl, (strend)
+        add hl, de
+        ld (strend), hl
+        pop de
+        ld (vartab), de
+        ld hl, (chndst)
+        ld bc, (chnvsz)
+        call memmov
+        call restor
+        call stkini
+        ld hl, (chnlin)
+        ld a, h
+        or l
+        jr z, .top
+        ld (linnum), hl
+        call fndlin
+        jp c, ulerr
+        call dexptr
+        jp newstt
+.top:   ld hl, (txttab)
+        dec hl
+        ld (txtptr), hl
+        jp newstt
+
+; Move BC bytes from HL to DE; the two may overlap.
+memmov: ld a, b
+        or c
+        ret z
+        push hl
+        or a
+        sbc hl, de
+        pop hl
+        jr c, .up
+        ldir
+        ret
+.up:    add hl, bc
+        dec hl
+        ex de, hl
+        add hl, bc
+        dec hl
+        ex de, hl
+        lddr
+        ret
+
 st_merge:
         ld de, ext_bas
         call getnam
@@ -537,11 +671,11 @@ st_merge:
         ld b, FA_READ
         call dopen
         call dget
-        jr c, textin
+        jp c, textin
         cp $55
         jr z, .bin
         call dunget
-        jr textin
+        jp textin
 ; A tokenised program: insert its lines one by one.
 .bin:   call dhead
 .line:  call dget                       ; the link: zero at the end

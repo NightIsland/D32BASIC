@@ -212,6 +212,8 @@ fretms: ld de, (lastpt)
 
 ; Move every string in string space up to the top, highest first.
 garbag: push ix
+        ld hl, gcchk
+        ld (walkfn), hl
         call .gc
         pop ix
         ret
@@ -221,6 +223,32 @@ garbag: push ix
         ld (grbtop), hl             ; highest address found so far
         ld hl, 0
         ld (grbpnt), hl
+        call strwlk
+.move:  ld hl, (grbpnt)             ; none left: done
+        ld a, h
+        or l
+        ret z
+        push hl
+        pop ix
+        ld c, (ix+0)                ; BC = length
+        ld b, 0
+        ld h, (ix+2)
+        ld l, (ix+3)
+        add hl, bc
+        dec hl                      ; HL = last byte of the string
+        ld de, (fretop)
+        dec de                      ; DE = new last byte
+        lddr
+        inc de                      ; new address
+        ld (fretop), de
+        ld (ix+2), d
+        ld (ix+3), e
+        jp .pass
+
+
+; Call (WALKFN) with IX at every string descriptor: the temporaries, the
+; simple variables and the array elements. Uses IX, ARYPNT.
+strwlk:
         ld ix, tempst               ; temporaries
 .tmp:   push ix
         pop hl
@@ -228,7 +256,7 @@ garbag: push ix
         or a
         sbc hl, de
         jr nc, .vars
-        call gcchk
+        call walkcb
         ld de, STRSIZ
         add ix, de
         jr .tmp
@@ -243,7 +271,7 @@ garbag: push ix
         jr z, .vnext
         inc ix
         inc ix
-        call gcchk
+        call walkcb
         dec ix
         dec ix
 .vnext: ld de, 7
@@ -255,7 +283,7 @@ garbag: push ix
         ld de, (strend)
         or a
         sbc hl, de
-        jr nc, .move
+        ret nc
         ld d, (ix+2)                ; HL = end of this array
         ld e, (ix+3)
         push ix
@@ -278,32 +306,14 @@ garbag: push ix
         or a
         sbc hl, de
         jr nc, .anext
-        call gcchk
+        call walkcb
         ld de, STRSIZ
         add ix, de
         jr .adsc
 .anext: ld ix, (arypnt)
         jr .ary
-.move:  ld hl, (grbpnt)             ; none left: done
-        ld a, h
-        or l
-        ret z
-        push hl
-        pop ix
-        ld c, (ix+0)                ; BC = length
-        ld b, 0
-        ld h, (ix+2)
-        ld l, (ix+3)
-        add hl, bc
-        dec hl                      ; HL = last byte of the string
-        ld de, (fretop)
-        dec de                      ; DE = new last byte
-        lddr
-        inc de                      ; new address
-        ld (fretop), de
-        ld (ix+2), d
-        ld (ix+3), e
-        jp .pass
+walkcb: ld hl, (walkfn)
+        jp (hl)
 
 ; Note the descriptor at IX if it is the highest string not yet moved.
 gcchk:  ld a, (ix+0)

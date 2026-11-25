@@ -118,6 +118,12 @@ traplin:        dw 0                ; ERROR GOTO line (0 = off)
 autofl:         db 0                ; AUTO on
 autonx:         dw 0                ; AUTO: next line number
 autoinc:        dw 0                ; AUTO: step
+walkfn:         dw 0                ; STRWLK: the routine for each string
+chnlen:         dw 0                ; CHAIN: program length
+chnvsz:         dw 0                ; CHAIN: size of the variables
+chndst:         dw 0                ; CHAIN: where the variables wait
+chnlin:         dw 0                ; CHAIN: the line to start at
+chnneed:        dw 0                ; CHAIN: bytes of strings to copy
 txtbeg:         dw 0                ; start of the current statement
 opmask:         db 0                ; FRMEVL: relations seen (> 1, = 2, < 4)
 opptr:          dw 0                ; FRMEVL: operator that ended an operand

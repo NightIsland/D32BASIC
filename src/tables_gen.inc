@@ -372,7 +372,7 @@ stmdsp:
         dw st_unimpl     ; BACKUP
         dw st_beep       ; BEEP
         dw st_unimpl     ; BOOT
-        dw st_unimpl     ; CHAIN
+        dw st_chain      ; CHAIN
         dw st_unimpl     ; COPY
         dw st_unimpl     ; CREATE
         dw st_dir        ; DIR

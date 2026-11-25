@@ -308,3 +308,67 @@ giv32:  ld (facexp), a
         ld (facsgn), a
         ld (valtyp), a
         jp normal
+
+; CHAIN: copy every string whose text is in the program (A$="X") into
+; string space, so the variables outlive the program. ?OS ERROR if there
+; is not room for them.
+chnstr: push ix
+        ld hl, 0
+        ld (chnneed), hl
+        ld hl, .count
+        ld (walkfn), hl
+        call strwlk
+        call garbag
+        ld hl, (fretop)
+        ld de, (stktop)
+        or a
+        sbc hl, de
+        ld de, (chnneed)
+        or a
+        sbc hl, de
+        ld e, ERR_OS
+        jp c, error
+        ld hl, .copy
+        ld (walkfn), hl
+        call strwlk
+        pop ix
+        ret
+.count: call .chk
+        ret c
+        ld hl, (chnneed)
+        add hl, bc
+        ld (chnneed), hl
+        ret
+.copy:  call .chk
+        ret c
+        push hl
+        ld hl, (fretop)
+        or a
+        sbc hl, bc
+        ld (fretop), hl
+        ex de, hl                       ; DE = its new place
+        pop hl
+        ld (ix + 2), d
+        ld (ix + 3), e
+        ldir
+        ret
+; Carry clear if the string at IX is in the program: HL = it, BC = length.
+.chk:   ld a, (ix + 0)
+        or a
+        scf
+        ret z
+        ld c, a
+        ld b, 0
+        ld h, (ix + 2)
+        ld l, (ix + 3)
+        ld de, (txttab)
+        or a
+        sbc hl, de
+        add hl, de
+        ret c                           ; below the program
+        ld de, (vartab)
+        or a
+        sbc hl, de
+        add hl, de
+        ccf                             ; at or above its end: carry
+        ret
