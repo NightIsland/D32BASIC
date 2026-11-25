@@ -96,14 +96,103 @@ dbg_echo:
     ENDIF
 
 ; Fill from HL to the end of its line with green spaces. Returns HL at the
-; start of the next line.
+; start of the next line. The picture is painted in one block fill, not cell
+; by cell: blanking is most of the work of PRINT and of scrolling.
 clreol:
-        ld (hl), INVSP
-        call render_hl
+        push bc
+        push de
+        push hl
+.lp:    ld (hl), INVSP
         inc hl
         ld a, l
         and $1F
-        jr nz, clreol
+        jr nz, .lp
+        ex (sp), hl                 ; HL = the first cell; the next line kept
+        ld a, (dspon)               ; graphics on show: the buffer only
+        or a
+        jr nz, .done
+        ld de, SCRADR
+        or a
+        sbc hl, de
+        ld a, l
+        and $1F
+        ld c, a                     ; column
+        add hl, hl
+        add hl, hl
+        add hl, hl
+        ld b, h                     ; row
+        ld a, (txtcl)               ; a text space is all background
+        call l2span
+.done:  pop hl
+        pop de
+        pop bc
+        ret
+
+; Paint row B (0-15) from column C to the end of the line in colour A.
+l2span: push af
+        ld a, b                     ; y = (row*12 + scroll) mod 192
+        add a, a
+        add a, b
+        add a, a
+        add a, a
+        ld hl, l2_scroll
+        add a, (hl)
+        jr c, .wrap
+        cp 192
+        jr c, .y
+.wrap:  sub 192
+.y:     ld (rc_y), a
+        ld a, c
+        add a, a
+        add a, a
+        add a, a
+        ld (rc_x), a
+        ld a, 32
+        sub c
+        ld (rc_n), a
+        pop af
+        ld e, a                     ; E = the colour
+        ld b, 12
+.row:   push bc
+        ld a, (rc_y)
+        ld d, a
+        and $C0                     ; which 64-line third
+        or 3                        ; write-map on, Layer 2 visible
+        ld bc, L2_PORT
+        out (c), a
+        ld a, d
+        and $3F
+        ld h, a
+        ld a, (rc_x)
+        ld l, a
+        ld a, (rc_n)
+        ld b, a
+        ld a, e
+.cell:  ld (hl), a                  ; eight pixels a cell
+        inc l
+        ld (hl), a
+        inc l
+        ld (hl), a
+        inc l
+        ld (hl), a
+        inc l
+        ld (hl), a
+        inc l
+        ld (hl), a
+        inc l
+        ld (hl), a
+        inc l
+        ld (hl), a
+        inc l
+        djnz .cell
+        ld a, d
+        inc a
+        ld (rc_y), a
+        pop bc
+        djnz .row
+        ld a, 2                     ; write-map off
+        ld bc, L2_PORT
+        out (c), a
         ret
 
 ; Scroll the buffer up a line, clear the bottom line, cursor to its start.
@@ -361,6 +450,9 @@ render_cell:
 
 .draw:  ; HL = 12 pattern bytes, IXH = fg, IXL = bg
         push bc
+        ld a, ixh                   ; IXH = fg xor bg: each pixel is
+        xor ixl                     ; (bit ? -1 : 0) and IXH xor bg
+        ld ixh, a
         ld b, 12
 .row:   push bc
         ld a, (rc_y)
@@ -376,14 +468,15 @@ render_cell:
         ld e, a                     ; DE = address in the $0000-$3FFF window
         ld c, (hl)
         inc hl
-        ld b, 8
-.px:    sla c
-        ld a, ixh
-        jr c, .on
-        ld a, ixl
-.on:    ld (de), a
+        ld b, ixh
+        REPT 8
+        rl c
+        sbc a, a
+        and b
+        xor ixl
+        ld (de), a
         inc e
-        djnz .px
+        ENDR
         ld a, (rc_y)
         inc a
         ld (rc_y), a

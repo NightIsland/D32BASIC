@@ -27,6 +27,14 @@ WORKSPACE       EQU $8000
 boot:
         di
         nextreg $07, 3                  ; 28 MHz
+        ld bc, $243B                    ; no memory contention, even at
+        ld a, $08                       ; 3.5 MHz (NextREG $08 bit 6; bit 7
+        out (c), a                      ; written as 0 leaves paging alone)
+        inc b
+        in a, (c)
+        and $7F
+        or $40
+        out (c), a
         ld sp, BOOT_STACK
     IF TESTMODE
         call load_autotype              ; while RST $08 still reaches esxDOS

@@ -39,6 +39,7 @@ at_end:         dw 0                ; TESTMODE: end of AUTOTYPE data
 dbg_on:         db 0                ; TESTMODE: echo screen output once input starts
 rc_y:           db 0                ; renderer scratch
 rc_x:           db 0
+rc_n:           db 0                ; l2span: cells to fill
 rc_pat:         ds 12
 
 ; ---- interpreter state ---------------------------------------------------
