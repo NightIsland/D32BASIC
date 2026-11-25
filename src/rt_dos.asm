@@ -1098,16 +1098,23 @@ fn_eof: ld a, (valtyp)
 
 dosbuf: ds DBUFSZ
 
-; FREE [(drive)]: free space on the SD card's current drive, in bytes.
+; FREE [(drive)] or FREE drive: free space on the SD card's current drive, in bytes.
 ; Drives 1-4 are a Dragon's; they all mean the current drive here.
 fn_free:
         call chrgot
-        cp '('
+        jr nc, .par
+        sub '0'                         ; FREE2: one digit, the drive
+        ld e, a
+        call chrget
+        ld a, e
+        jr .drv
+.par:   cp '('
         jr nz, .cur
         call chkopn
         call getbyt
         call chkcls
         ld a, e
+.drv:
         dec a
         cp 4
         jr c, .cur
