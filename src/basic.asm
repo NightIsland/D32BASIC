@@ -992,5 +992,5 @@ msg_error:      db " ERROR", 0
 msg_in:         db " IN ", 0
 msg_ok:         db "OK", 13, 0
 msg_break:      db 13, "BREAK", 0
-msg_banner:     db "D32BASIC FOR THE SPECTRUM NEXT", 13
+msg_banner:     db "D32BASIC 1.0 FOR SPECTRUM NEXT", 13
                 db "DRAGON 32 COMPATIBLE BASIC", 13, 13, 0
