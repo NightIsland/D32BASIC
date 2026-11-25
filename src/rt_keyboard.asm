@@ -293,7 +293,7 @@ kb_caps:
         db 0,   'Z', 'X', 'C', 'V'
         db 'A', 'S', 'D', 'F', 'G'
         db 'Q', 'W', 'E', 'R', 'T'
-        db $0C, KEY_TOGGLE, 0, 0, 8
+        db $0C, $13, 0, 0, 8            ; CAPS+2: SHIFT+@ (pause)
         db KEY_TOGGLE, 0, 9, $5E, 10
         db 'P', 'O', 'I', 'U', 'Y'
         db 13,  'L', 'K', 'J', 'H'
