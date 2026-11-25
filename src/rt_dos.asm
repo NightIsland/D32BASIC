@@ -247,6 +247,8 @@ dos_getc:
 ; the name has none, or 0. A DragonDOS drive suffix (":1") is dropped.
 getnam: push de
         call frmevl
+        pop de
+getnmf: push de                         ; (the name already in the FAC)
         call frestr                     ; HL = text, B = length
         ld a, b
         or a
@@ -1005,7 +1007,15 @@ ext_dat: db ".DAT", 0
 
 ; CLOSE [#device[, #device...]]
 st_close:
-        jr z, closit                ; no list: close everything
+        jr z, .all                      ; no list: close everything
+        cp '1'                          ; CLOSE drive (1-4), as DragonDOS
+        jr c, .lp
+        cp '5'
+        jr nc, .lp
+        call chrget
+        jp nz, snerr
+.all:   call rfclr                      ; the random files' pointers too
+        jr closit
 .lp:    call getdnm
         call closit
         call chrgot
@@ -1025,7 +1035,10 @@ closit: xor a
 
 ; Read a line of the data file into BUF: CR, LF or CR LF ends it. HL =
 ; BUF-1. ?IE ERROR if the end of the file comes first.
-flinln: ld hl, BUF
+flinln: ld a, (devnum)
+        cp 3
+        jp z, rfline                    ; FREAD
+        ld hl, BUF
         ld b, 0
 .lp:    call dget
         jr c, .eof
@@ -1051,7 +1064,10 @@ flinln: ld hl, BUF
         jp error
 
 ; EOF(device): -1 at the end of the data file, else 0.
-fn_eof: ld a, (devnum)
+fn_eof: ld a, (valtyp)
+        or a
+        jp nz, rfeof                    ; EOF("name"): a random file
+        ld a, (devnum)
         push af
         call intcnv
         ld a, d                     ; (as GETDNM, from the FAC)

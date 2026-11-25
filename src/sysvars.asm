@@ -281,5 +281,24 @@ bufmin:         db 0                ; INPUT stores a comma here
 BUF:            ds BUFLEN + 2
 fbuffr:         ds 40               ; number formatting
 
+; ---- DragonDOS random-access files (FREAD, FWRITE, ...) --------------------
+RFMAX           EQU 10              ; files with a read pointer at once
+RFSIZ           EQU 68              ; an entry: the name (64), the pointer (4)
+rftab:          ds RFMAX * RFSIZ    ; a name starting with 0: a free entry
+rfent:          dw 0                ; the entry in use
+rfh:            db 0                ; the esxDOS handle while a file is open
+rfopn:          db 0                ; 1 while it is open
+rfpos:          ds 4                ; where this FREAD/FWRITE starts
+rffrom:         db 0                ; 1 if FROM was given
+rffor:          dw 0                ; FOR length (0: none)
+rfcnt:          dw 0                ; bytes read or written so far
+rfbase:         dw 0                ; RFCNT when the current line began
+rbn:            dw 0                ; bytes left in RFBUF
+rbp:            dw 0                ; the next byte in RFBUF
+rfstat:         ds 11               ; F_FSTAT's result
+rfbuf:          ds 256
+                db 0                ; (FREAD starts with "nothing read")
+rlbuf:          ds BUFLEN + 2       ; FREAD's line (BUF may hold the command)
+
 sysvars_end:
         ASSERT sysvars_end <= $5000

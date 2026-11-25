@@ -374,12 +374,12 @@ stmdsp:
         dw st_unimpl     ; BOOT
         dw st_chain      ; CHAIN
         dw st_copy       ; COPY
-        dw st_unimpl     ; CREATE
+        dw st_create     ; CREATE
         dw st_dir        ; DIR
         dw st_unimpl     ; DRIVE
         dw st_unimpl     ; DSKINIT
-        dw st_unimpl     ; FREAD
-        dw st_unimpl     ; FWRITE
+        dw st_fread      ; FREAD
+        dw st_fwrite     ; FWRITE
         dw st_error      ; ERROR
         dw st_kill       ; KILL
         dw st_load       ; LOAD
@@ -392,7 +392,7 @@ stmdsp:
         dw st_unimpl     ; SWRITE
         dw st_verify     ; VERIFY
         dw st_unimpl     ; FROM
-        dw st_unimpl     ; FLREAD
+        dw st_flread     ; FLREAD
         dw st_swap       ; SWAP
         dw st_cd         ; CD
         dw st_mkdir      ; MKDIR
@@ -433,10 +433,10 @@ fundsp:
         dw fn_ppoint     ; PPOINT
         dw fn_string     ; STRING$
         dw fn_usr        ; USR
-        dw fn_unimpl     ; LOF
+        dw fn_lof        ; LOF
         dw fn_free       ; FREE
         dw fn_erl        ; ERL
         dw fn_err        ; ERR
         dw fn_himem      ; HIMEM
-        dw fn_unimpl     ; LOC
+        dw fn_loc        ; LOC
         dw fn_fres       ; FRE$

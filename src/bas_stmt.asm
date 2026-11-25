@@ -323,7 +323,10 @@ datbk:  ld (txtptr), hl
         jr z, .inp
         ld (datptr), hl
         ret
-.inp:   ld a, (hl)
+.inp:   ld a, (devnum)              ; FREAD leaves the rest for later
+        cp 3
+        ret z
+        ld a, (hl)
         or a
         ret z
         ld hl, msg_extra

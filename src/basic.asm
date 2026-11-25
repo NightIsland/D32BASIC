@@ -40,6 +40,8 @@ ERR_DF  EQU 54                      ; DragonDOS: disk full
 ERR_FS  EQU 56                      ; DragonDOS: bad file name
 ERR_PT  EQU 58                      ; DragonDOS: protected
 ERR_FE  EQU 60                      ; DragonDOS: file exists
+ERR_RE  EQU 62                      ; DragonDOS: read past the end ("FE")
+ERR_TF  EQU 64                      ; DragonDOS: too many files
 
 FORSIZ  EQU 18                      ; bytes in a FOR stack entry
 GOSIZ   EQU 5                       ; bytes in a GOSUB stack entry
@@ -994,7 +996,7 @@ isletc:
         INCLUDE "tables_gen.inc"
 
 errtab: db "NFSNRGODFCOVOMULBSDD/0IDTMOSLSSTCNUFFDAODNIOFMNOIEDSNE"
-        db "DFFSPTFE"
+        db "DFFSPTFEFETF"
 msg_error:      db " ERROR", 0
 msg_in:         db " IN ", 0
 msg_ok:         db "OK", 13, 0

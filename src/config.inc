@@ -17,7 +17,10 @@ F_READDIR       EQU $A4
 F_UNLINK        EQU $AD
 F_RENAME        EQU $B0
 F_GETFREE       EQU $B1
+F_SEEK          EQU $9F
+F_FSTAT         EQU $A1
 FA_READ         EQU $01
 FA_WRITE        EQU $02
+FA_OPEN_AL      EQU $08             ; open, or create if need be
 FA_CREATE_NEW   EQU $04             ; create; an error if it exists
 FA_CREATE_AL    EQU $0C             ; create, or truncate if it exists
