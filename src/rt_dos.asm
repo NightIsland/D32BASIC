@@ -599,17 +599,22 @@ st_dir: jr z, .go
         ld a, (hl)
         cp '.'                          ; ".", ".." and hidden names
         jr z, .next
-        ld b, 20                        ; at most 20 characters of the name
-.name:  ld a, (hl)
-        inc hl
-        or a
-        jr z, .pad
-        call chrout
-        djnz .name
-.skip:  ld a, (hl)                      ; the rest of a long name
-        inc hl
-        or a
-        jr nz, .skip
+.name:  ld a, (hl)                      ; the whole name, in capitals:
+        inc hl                          ; names are found in either case,
+        or a                            ; and the Dragon has no lower case
+        jr z, .endn
+        cp 'a'
+        jr c, .out
+        cp 'z' + 1
+        jr nc, .out
+        and $DF
+.out:   call chrout
+        jr .name
+.endn:  call devprm
+        ld a, (devpos)                  ; a long name: the size goes on
+        cp 21                           ; the next line
+        jr c, .pad
+        call crdo
 .pad:   call devprm
         ld a, (devpos)
         cp 21
@@ -653,7 +658,7 @@ st_dir: jr z, .go
 .isdir: ld hl, .dir
         call strout
 .eol:   call crdo
-        jr .next
+        jp .next
 .dot:   db ".", 0
 .dir:   db "<DIR>", 0
 
