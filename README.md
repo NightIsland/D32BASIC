@@ -9,14 +9,22 @@ on the SD card. It aims to run Dragon BASIC *programs* (not Dragon machine-code
 software), with the authentic 32x16 green screen, PMODE graphics, `PLAY` and
 `SOUND`. Later versions will add Next hardware features through new PMODEs.
 
-**Status:** step 3 of 4 (the MVP) is code-complete and waiting for checks on
-a real Next. You can type, edit, run, save and load Dragon BASIC programs:
+**Status:** version 1.0, the first complete release, checked on a real Next
+(KS3). You can type, edit, run, save and load Dragon BASIC programs:
 the whole core language, PMODE graphics (`PSET`, `LINE`, `CIRCLE`, `PAINT`,
 `DRAW`, `GET`/`PUT`, `PCOPY` and the rest, byte-identical to a Dragon), the
 text-screen block graphics, `PLAY` and `SOUND` on the AY chip, `EDIT`,
 `LINE INPUT`, `JOYSTK`, and SD card files (`SAVE`, `LOAD`, `MERGE`, `DIR`,
 `KILL`, `RENAME`, and data files through `OPEN`/`PRINT #-1`/`INPUT #-1`).
-See [docs/ROADMAP.md](docs/ROADMAP.md).
+The GRAPH key opens a settings screen for the files folder (on any drive),
+the CPU speed and whether unsupported commands are skipped. Next come the
+DragonDOS BASIC extras, then Next hardware extensions: see
+[docs/ROADMAP.md](docs/ROADMAP.md).
+
+## Using it
+
+Download `D32BASIC.NEX` from the latest release, copy it to your SD card and
+run it from the NextZXOS browser. `BYE` returns to NextZXOS.
 
 ## Building
 
