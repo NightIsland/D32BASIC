@@ -62,6 +62,16 @@ the same output on both. Either way, the ROM is a local file used only for
 testing. It is git-ignored and must never be committed. You can also point
 `D32_ROM` at any ROM image without copying it.
 
+For the DragonDOS commands, the oracle can also run with the 8K DragonDOS
+cartridge ROM mapped at `$C000`:
+
+    build/oracle/dragon_oracle build/oracle/d32.rom case.bas --cart ddos10.rom
+
+It has no disk controller, so anything that needs a disk fails (`DIR`,
+`FREE(1)`), but the commands that don't, such as `ERROR GOTO`, `ERR`, `ERL`,
+`SWAP`, `HIMEM` and `BEEP`, behave as on a real Dragon with DragonDOS. Like
+the BASIC ROM, the DragonDOS ROM stays a local file and is never committed.
+
 ## Writing cases
 
 * Type only characters a Dragon keyboard has: upper case, digits and the usual

@@ -5,12 +5,16 @@
  * BASIC ROM image that you supply locally; no ROM is distributed with it.
  *
  * Usage: dragon_oracle ROM INPUT.txt [--screen FILE] [--max-cycles N]
+ *                      [--cart FILE]
  *
  * INPUT.txt is typed at the keyboard exactly as written (LF becomes ENTER).
  * Everything BASIC prints to the screen is written to stdout (CR -> LF).
  * With --screen, the final 32x16 text screen is written to FILE.
  * The run ends when all input has been consumed and BASIC has sat idle at
  * the keyboard for a while, or after --max-cycles CPU cycles.
+ * With --cart, an 8K cartridge ROM (such as DragonDOS) is mapped at $C000
+ * (and mirrored at $E000). There is no disk controller: its registers read
+ * as zero, so DOS commands that need a disk fail, and the rest work.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,6 +22,7 @@
 #include "mc6809.h"
 
 static uint8_t mem[65536];
+static uint8_t cart[0x2000]; static int have_cart;
 static uint8_t *input; static size_t inlen, inpos;
 static uint16_t polcat_addr, scrout_addr;
 static int irq_flag;
@@ -36,7 +41,7 @@ static mc6809byte__t rd(mc6809__t *cpu, mc6809addr__t a, bool ifetch)
       default: return mem[a];
     }
   }
-  if (a >= 0xC000) return 0xFF;                       /* no cartridge */
+  if (a >= 0xC000) return have_cart ? cart[a & 0x1FFF] : 0xFF;
   return mem[a];
 }
 
@@ -75,6 +80,11 @@ int main(int argc, char **argv)
   for (int i = 3; i < argc; i++) {
     if (!strcmp(argv[i], "--screen") && i + 1 < argc) screen = argv[++i];
     else if (!strcmp(argv[i], "--max-cycles") && i + 1 < argc) maxc = strtoul(argv[++i], 0, 10);
+    else if (!strcmp(argv[i], "--cart") && i + 1 < argc) {
+      FILE *c = fopen(argv[++i], "rb");
+      if (!c || fread(cart, 1, 0x2000, c) != 0x2000) { fprintf(stderr, "cannot read 8K cartridge %s\n", argv[i]); return 1; }
+      fclose(c); have_cart = 1;
+    }
   }
   FILE *f = fopen(argv[1], "rb");
   if (!f || fread(mem + 0x8000, 1, 0x4000, f) != 0x4000) { fprintf(stderr, "cannot read 16K ROM %s\n", argv[1]); return 1; }
