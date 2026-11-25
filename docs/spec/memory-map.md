@@ -104,11 +104,14 @@ all back afterwards. The settings are kept in `D32BASIC.CFG`, a plain text
 file in the folder the `.NEX` was started from (found with `F_GETCWD` at
 start-up):
 
-    FOLDER=C:/DRAGON/       programs and data files (empty: the start-up folder)
+    FOLDER=D:/DRAGON/       programs and data files, on any drive (empty: the start-up folder)
     UNSUPPORTED=ERROR       or IGNORE: skip statements D32BASIC does not have
     SPEED=28                CPU speed in MHz: 3.5, 7, 14 or 28
 
-The files folder is made the esxDOS current folder (`F_CHDIR`), so every
-file command uses it with no change of its own. With `IGNORE`, an
+The files folder's drive is made the current drive (`M_GETSETDRV`, the
+start-up drive when the folder names none) and the folder the current folder
+(`F_CHDIR`), so every file command uses it with no change of its own.
+`F_CHDIR` alone is not enough for another drive: it changes that drive's
+folder, not which drive is current. With `IGNORE`, an
 unsupported statement is skipped like `DATA` (to the next `:` or the end of
 the line); unsupported functions still give `?FC ERROR`.

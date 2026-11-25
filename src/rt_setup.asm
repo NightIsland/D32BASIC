@@ -4,7 +4,7 @@
 ; D32BASIC.CFG lives in the folder D32BASIC.NEX was started from. It is plain
 ; text, one setting a line, so it can be edited on a PC too:
 ;
-;   FOLDER=C:/DRAGON/       the folder for programs and data files
+;   FOLDER=D:/DRAGON/       the folder for programs and data files, on any drive
 ;                           (empty: the start-up folder)
 ;   UNSUPPORTED=ERROR       or IGNORE: skip unsupported statements
 ;   SPEED=28                CPU speed in MHz: 3.5, 7, 14 or 28
@@ -13,6 +13,7 @@
 ; (SAVE, LOAD, DIR, OPEN ...) uses it with no change of its own.
 ; ===========================================================================
 
+M_GETSETDRV     EQU $89
 F_GETCWD        EQU $A8
 F_CHDIR         EQU $A9
 
@@ -31,7 +32,13 @@ set_init:
         jr nc, .cfg
         xor a                           ; not known: stay where we are
         ld (startdir), a
-.cfg:   call cfgread
+.cfg:   xor a                           ; and the start-up drive
+        ld l, M_GETSETDRV
+        call dos_call
+        jr nc, .drv
+        ld a, 2 << 3                    ; not known: C:
+.drv:   ld (startdrv), a
+        call cfgread
         jp setapply
 
 ; Read D32BASIC.CFG from the current (start-up) folder, if it is there.
@@ -164,6 +171,8 @@ kmatch: ld a, (de)
 setapply:
         ld a, (setspd)
         nextreg $07, a
+        call fdrive
+        ret c                           ; no such drive
         ld ix, setfld
         ld a, (ix)
         or a
@@ -176,8 +185,36 @@ setapply:
         ld l, F_CHDIR
         jp dos_call
 
+; Make the files folder's drive the current one: the drive it names
+; ("D:/GAMES"), or the start-up drive. F_CHDIR to another drive changes that
+; drive's folder but not which drive is current, and every file command uses
+; the current drive. Carry set if there is no such drive.
+fdrive: ld hl, (setfld)                 ; L = the first character, H = the second
+        ld a, l
+        or a
+        jr z, sethome
+        ld a, h
+        cp ':'
+        jr nz, sethome
+        ld a, l
+        and $DF
+        sub 'A'
+        cp 16                           ; drives A to P
+        ccf
+        ret c
+        add a, a                        ; the letter goes in bits 7-3
+        add a, a
+        add a, a
+        jr setdrv
+sethome:
+        ld a, (startdrv)
+setdrv: or 1                            ; bit 0: set, not get
+        ld l, M_GETSETDRV
+        jp dos_call
+
 ; Write D32BASIC.CFG in the start-up folder. Carry set on an error.
 cfgwrite:
+        call sethome                    ; an error leaves the drive as it is
         ld a, (startdir)
         or a
         jr z, .here
@@ -493,3 +530,4 @@ scrsav:   ds 512                        ; the text screen under the settings
 cfgbuf:   ds 256                        ; D32BASIC.CFG being read or written
 setold:   ds 64
 insetup:  db 0
+startdrv: db 2 << 3                     ; the start-up drive, as M_GETSETDRV gives it
