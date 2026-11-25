@@ -104,6 +104,10 @@ dbufp:          dw 0                ; next byte in DOSBUF
 dbufn:          dw 0                ; bytes left in DOSBUF (reading)
 fname:          ds 64               ; file name for esxDOS, zero-terminated
 fname2:         ds 64               ; RENAME's new name
+setfld:         ds 64               ; SETUP: the files folder ("" = start-up)
+setign:         db 0                ; SETUP: 1 = skip unsupported statements
+setspd:         db 3                ; SETUP: NextREG 7 CPU speed (3 = 28 MHz)
+startdir:       ds 128              ; the start-up folder (F_GETCWD)
 brkflg:         db 0                ; bit 7: print BREAK
 ifcnt:          db 0
 errnum:         db 0                ; error code being reported                ; IFs skipped looking for ELSE

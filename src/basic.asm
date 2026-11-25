@@ -67,6 +67,7 @@ cold_start:
         ld (nzlink), a
         call joyset
         call snd_init
+        call set_init                   ; D32BASIC.CFG
         call grinit                     ; graphics pages, PCLEAR 4
         call xrrun
         call grnchr
@@ -420,8 +421,13 @@ gone3:
         ei
         ret
 
+; A statement D32BASIC does not have: ?SN ERROR, or skipped when SETUP
+; says to ignore them.
 st_unimpl:
-        jp snerr
+        ld a, (setign)
+        or a
+        jp z, snerr
+        jp st_data
 
 ; Check for BREAK (and SHIFT-@ pause). Other keys are kept for INKEY$.
 iscntc:

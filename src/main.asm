@@ -59,6 +59,7 @@ boot:
         INCLUDE "bas_graph.asm"
         INCLUDE "bas_graph2.asm"
         INCLUDE "rt_sound.asm"
+        INCLUDE "rt_setup.asm"
     IF TESTMODE
         INCLUDE "testmode.asm"
     ENDIF

@@ -12,6 +12,7 @@
 ; (NextREG $68 bit 4), so DELETE deletes rather than acting as CAPS+0.
 
 KEY_TOGGLE      EQU $FF             ; internal: alpha lock toggle
+KEY_SETUP       EQU $FE             ; internal: GRAPH, the settings screen
 RPT_DELAY       EQU 25              ; frames before auto-repeat
 RPT_RATE        EQU 4               ; frames between repeats
 
@@ -263,7 +264,12 @@ polcat:
         ld h, a
         ld a, (hl)
         pop hl
+        cp KEY_SETUP
+        jr z, .setup
         or a
+        ret
+.setup: call setovl                 ; GRAPH: the settings screen
+        xor a
         ret
 .none:  pop hl
         xor a
@@ -272,7 +278,7 @@ polcat:
 ; The extra keys: NextREG $B0 bits 0-7, then $B1 bits 0-7.
 kb_xtab:
         db 9, 8, 10, $5E, '.', ',', '"', ';'
-        db 0, KEY_TOGGLE, 0, 0, KEY_TOGGLE, 3, $0C, 8
+        db 0, KEY_TOGGLE, KEY_SETUP, 0, KEY_TOGGLE, 3, $0C, 8
 
 kb_plain:
         db 0,   'Z', 'X', 'C', 'V'
@@ -366,8 +372,17 @@ joyset: di
 ; BYE typed as a direct command (it is not a Dragon keyword, so it is not
 ; tokenised and cannot appear in a program) leaves D32BASIC with a soft
 ; reset, which returns to NextZXOS. Anything else returns.
-chkbye: ld hl, (txtptr)
-        ld de, .word
+chkbye: ld de, .word
+        call mtword
+        ret nz
+        di
+        nextreg $02, $01            ; soft reset
+        halt
+.word:  db "BYE", 0
+
+; Is the direct line just the word at DE (either case, spaces after it
+; allowed)? Z if so.
+mtword: ld hl, (txtptr)
 .lp:    ld a, (de)
         or a
         jr z, .end
@@ -384,8 +399,4 @@ chkbye: ld hl, (txtptr)
         cp ' '
         jr z, .end
         or a
-        ret nz
-        di
-        nextreg $02, $01            ; soft reset
-        halt
-.word:  db "BYE", 0
+        ret
