@@ -19,4 +19,5 @@ F_RENAME        EQU $B0
 F_GETFREE       EQU $B1
 FA_READ         EQU $01
 FA_WRITE        EQU $02
+FA_CREATE_NEW   EQU $04             ; create; an error if it exists
 FA_CREATE_AL    EQU $0C             ; create, or truncate if it exists

@@ -828,6 +828,83 @@ st_rename:
         jp c, doserr
         ret
 
+; COPY "from" TO "to": copy a file. The new one must not exist (?FE).
+st_copy:
+        ld de, 0
+        call getnam
+        ld hl, fname
+        ld de, fname2
+        ld bc, 64
+        ldir
+        ld a, TK_TO
+        call synchr
+        ld de, 0
+        call getnam
+        call .swap                      ; the source, in DOSFH as for LOAD
+        ld b, FA_READ
+        call dopen
+        call .swap
+        ld a, '*'
+        ld ix, fname
+        ld b, FA_WRITE | FA_CREATE_NEW
+        ld l, F_OPEN
+        call dos_call
+        jp c, doserr
+        ld (cpdst), a
+.lp:    ld a, (dosfh)
+        ld ix, dosbuf
+        ld bc, DBUFSZ
+        ld l, F_READ
+        call dos_call
+        jr c, .err
+        ld a, b
+        or c
+        jr z, .done
+        ld a, (cpdst)
+        ld ix, dosbuf
+        ld l, F_WRITE
+        call dos_call
+        jr nc, .lp
+.err:   push af
+        call .shut
+        pop af
+        jp doserr
+.done:  call .shut
+        jp dclose
+.shut:  ld a, (cpdst)
+        ld l, F_CLOSE
+        jp dos_call
+; Exchange FNAME and FNAME2.
+.swap:  ld hl, fname
+        ld de, fname2
+        ld b, 64
+.sw:    ld a, (de)
+        ld c, (hl)
+        ld (hl), a
+        ld a, c
+        ld (de), a
+        inc hl
+        inc de
+        djnz .sw
+        ret
+
+; PROTECT ON|OFF "name" and VERIFY [ON|OFF]: accepted, but do nothing.
+st_protect:
+        cp TK_ON
+        jr z, .ok
+        cp TK_OFF
+        jp nz, snerr
+.ok:    call chrget
+        ld de, 0
+        jp getnam
+st_verify:
+        ret z
+        cp TK_ON
+        jr z, .ok
+        cp TK_OFF
+        jp nz, snerr
+.ok:    jp chrget
+
 ; ---- data files: OPEN, CLOSE, PRINT #, INPUT #, EOF -------------------------------
 ; The Dragon's cassette (device -1) is a file on the SD card here, named as
 ; given with ".DAT" added when there is no extension. Device -2, the

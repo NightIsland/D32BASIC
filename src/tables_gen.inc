@@ -373,7 +373,7 @@ stmdsp:
         dw st_beep       ; BEEP
         dw st_unimpl     ; BOOT
         dw st_chain      ; CHAIN
-        dw st_unimpl     ; COPY
+        dw st_copy       ; COPY
         dw st_unimpl     ; CREATE
         dw st_dir        ; DIR
         dw st_unimpl     ; DRIVE
@@ -384,13 +384,13 @@ stmdsp:
         dw st_kill       ; KILL
         dw st_load       ; LOAD
         dw st_merge      ; MERGE
-        dw st_unimpl     ; PROTECT
+        dw st_protect    ; PROTECT
         dw st_wait       ; WAIT
         dw st_rename     ; RENAME
         dw st_save       ; SAVE
         dw st_unimpl     ; SREAD
         dw st_unimpl     ; SWRITE
-        dw st_unimpl     ; VERIFY
+        dw st_verify     ; VERIFY
         dw st_unimpl     ; FROM
         dw st_unimpl     ; FLREAD
         dw st_swap       ; SWAP

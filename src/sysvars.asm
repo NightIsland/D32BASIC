@@ -124,6 +124,7 @@ chnvsz:         dw 0                ; CHAIN: size of the variables
 chndst:         dw 0                ; CHAIN: where the variables wait
 chnlin:         dw 0                ; CHAIN: the line to start at
 chnneed:        dw 0                ; CHAIN: bytes of strings to copy
+cpdst:          db 0                ; COPY: the new file's handle
 txtbeg:         dw 0                ; start of the current statement
 opmask:         db 0                ; FRMEVL: relations seen (> 1, = 2, < 4)
 opptr:          dw 0                ; FRMEVL: operator that ended an operand
