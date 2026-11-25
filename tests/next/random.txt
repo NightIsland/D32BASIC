@@ -31,7 +31,7 @@ FREAD "REC",FROM 20,FOR 20;R$:PRINT R$;LOC("REC")
 SECOND 99            40 
 OK
 FREAD "REC",FROM 0,FOR 20;R$:PRINT R$;LOC("REC")
-FIRST               SECOND 99            20 
+FIRST                20 
 OK
 FWRITE "REC",FROM 20,FOR 3;"ABCDEF"
 OK

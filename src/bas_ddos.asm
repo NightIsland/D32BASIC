@@ -563,11 +563,22 @@ rfclos: ld a, (rfopn)
         ld l, F_CLOSE
         jp dos_call
 
-; Next byte of the file in A; carry set at its end. Counts RFCNT.
+; Next byte of the file in A; carry set at its end, or at the end of the
+; FOR record. Counts RFCNT.
 rget:   push hl
         push bc
         push de
-        ld hl, (rbn)
+        ld hl, (rffor)
+        ld a, h
+        or l
+        jr z, .any
+        ex de, hl
+        ld hl, (rfcnt)
+        or a
+        sbc hl, de
+        ccf
+        jr c, .out                      ; the record is used up
+.any:   ld hl, (rbn)
         ld a, h
         or l
         jr nz, .have

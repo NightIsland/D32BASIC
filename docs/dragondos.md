@@ -46,7 +46,8 @@ DragonDOS disk.
   * `FREAD "name"[,FROM pos][,FOR len];variables` reads as `INPUT` does:
     commas, colons and line ends separate the items. It starts at the file's
     read pointer (0 at first) unless `FROM`, and moves the pointer past what
-    it read, or by `FOR`. `FLREAD` reads a whole line into one string,
+    it read. With `FOR`, it reads only that record (`FOR` bytes) and moves
+    the pointer to the end of it. `FLREAD` reads a whole line into one string,
     commas included. Reading past the end gives `?FE ERROR` (code 154).
   * `LOF "name"` is the file's length and `LOC "name"` its read pointer, in
     bytes. `EOF("name")` is 1 before the end and 0 at it (the manual's
