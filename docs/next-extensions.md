@@ -6,15 +6,21 @@ which is `?FC ERROR` on a Dragon. So every Dragon program behaves exactly as
 before, and a program that uses an extension stops with an error on a real
 Dragon instead of doing something else.
 
+Dragon keywords keep their Dragon meaning: `LOAD` only ever loads a
+program. Where an extension needs a keyword of its own, its name starts with
+`ZX`, such as `ZXLOAD` or `ZXSPRITE`, so Next-only lines stand out in a
+listing. No Dragon or DragonDOS keyword starts with ZX.
+
 | Phase | Extension | Status |
 |---|---|---|
 | 4a | `PMODE 5`: 256x192 in 256 colours, with two screens | done |
 | 4b | `PLAY A$,B$,C$`: three voices | planned |
 | 4c | A mouse through `JOYSTK(4)` to `JOYSTK(6)` | planned |
-| 4d | `PALETTE`: choose the colours | planned |
+| 4d | `ZXPALETTE`: choose the colours | planned |
 | 4e | `PMODE 6` and `7`: 320x256 and 640x256 | planned |
-| 4f | Hardware sprites | planned |
-| 4g | `WIDTH 40` and `WIDTH 80` | planned |
+| 4f | Hardware sprites: `ZXSPRITE` | planned |
+| 4g | `ZXWIDTH 40` and `ZXWIDTH 80` | planned |
+| - | `ZXLOAD "name",screen` and `ZXSAVE`: Next picture files (`.SL2`) in and out of a PMODE 5 screen, shown or not | planned, next |
 
 ## PMODE 5: 256 colours
 

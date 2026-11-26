@@ -22,6 +22,7 @@
    [dragondos.md](dragondos.md).
 4. **Next extensions**, in small phases, each using only values a Dragon
    refuses so no Dragon program changes: `PMODE 5` (256x192 in 256 colours,
-   *done*), `PLAY` with three voices, a mouse through `JOYSTK`, `PALETTE`,
-   `PMODE 6` and `7` (320x256 and 640x256), hardware sprites, and
-   `WIDTH 40`/`80`. See [next-extensions.md](next-extensions.md).
+   *done*), `ZXLOAD`/`ZXSAVE` for screen pictures, `PLAY` with three
+   voices, a mouse through `JOYSTK`, `ZXPALETTE`, `PMODE 6` and `7` (320x256
+   and 640x256), hardware sprites (`ZXSPRITE`), and `ZXWIDTH 40`/`80`. New
+   keywords start with `ZX`. See [next-extensions.md](next-extensions.md).
