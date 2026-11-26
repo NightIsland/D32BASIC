@@ -50,7 +50,7 @@ The esxDOS calls run with interrupts off and the ROM paged in for each call.
 16. Set a files folder that exists (1), save with ENTER, `SAVE "X"`, and
     check the file is in that folder. Start D32BASIC again: the setting is
     still there (`D32BASIC.CFG` beside the `.NEX`).
-17. Set UNSUPPORTED COMMANDS to IGNORE (2): `AUTO:PRINT "HI"` prints HI.
+17. Set UNSUPPORTED COMMANDS to IGNORE (2): `DRIVE 1:PRINT "HI"` prints HI.
 18. Set the CPU speed (3) to 3.5 MHz: a `FOR` loop runs slower, but
     `SOUND 89,20` still lasts 1.6 seconds.
 
@@ -59,5 +59,21 @@ The esxDOS calls run with interrupts off and the ROM paged in for each call.
 19. With a joystick in port 1:
     `10 PRINT JOYSTK(0);JOYSTK(1):GOTO 10`, `RUN`: values 0, 31 or 63 as
     it moves. Note this sets both joystick ports to Kempston mode.
+
+## DragonDOS extras
+
+20. `AUTO`, type `PRINT 1`, ENTER, `PRINT 2`, ENTER, then ENTER on the
+    empty `120`: AUTO stops and `LIST` shows lines 100 and 110.
+21. `BEEP 3` gives three short beeps; `WAIT 2000` pauses about 2 seconds.
+22. `10 ERROR GOTO 100:PRINT 1/0` and `100 PRINT ERR;ERL`, `RUN`: prints
+    20 and 10.
+23. `MKDIR "D32TEST"`, `CD "D32TEST"`, `CD` shows the folder, `CD ".."`.
+    Then `CD "D:"` (if you have a second drive) and `CD` shows D:.
+24. Random files: `FWRITE "R";"ONE,";2`, `FREAD "R";A$,B`, `PRINT A$;B`
+    shows ONE 2; `PRINT LOF "R"` shows 7; `COPY "R.DAT" TO "S.DAT"`;
+    `DIR` shows both.
+25. `10 PRINT "FIRST":A=5:CHAIN "SECOND"`, with SECOND.BAS saved as
+    `10 PRINT "SECOND";A`: prints FIRST, then SECOND 5.
+26. `PRINT FREE` shows the free space on the card (in bytes).
 
 Report anything odd with what was typed and what happened.

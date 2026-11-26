@@ -17,9 +17,14 @@ text-screen block graphics, `PLAY` and `SOUND` on the AY chip, `EDIT`,
 `LINE INPUT`, `JOYSTK`, and SD card files (`SAVE`, `LOAD`, `MERGE`, `DIR`,
 `KILL`, `RENAME`, and data files through `OPEN`/`PRINT #-1`/`INPUT #-1`).
 The GRAPH key opens a settings screen for the files folder (on any drive),
-the CPU speed and whether unsupported commands are skipped. Next come the
-DragonDOS BASIC extras, then Next hardware extensions: see
-[docs/ROADMAP.md](docs/ROADMAP.md).
+the CPU speed and whether unsupported commands are skipped.
+
+Since 1.0, the DragonDOS BASIC extras: `ERROR GOTO`, `ERR`, `ERL`, `SWAP`,
+`AUTO`, `BEEP`, `WAIT`, `CHAIN`, `COPY`, `FREE`, `HIMEM`, `FRE$`,
+random-access files (`CREATE`, `FREAD`, `FWRITE`, `FLREAD`, `LOF`, `LOC`)
+and two folder commands of our own, `CD` and `MKDIR`; see
+[docs/dragondos.md](docs/dragondos.md). Next come the Next hardware
+extensions: see [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Using it
 
@@ -53,6 +58,7 @@ regenerate expected output.
 * [docs/spec/tokens.md](docs/spec/tokens.md): the token table (byte compatible with the Dragon)
 * [docs/spec/float.md](docs/spec/float.md): the floating point format and maths
 * [docs/spec/memory-map.md](docs/spec/memory-map.md): how the Next's memory, screen and hardware are used
+* [docs/dragondos.md](docs/dragondos.md): the DragonDOS commands, and how they differ
 * [docs/testing.md](docs/testing.md): the test harness
 * [docs/ks3-checklist.md](docs/ks3-checklist.md): checks to run on a real Next
 

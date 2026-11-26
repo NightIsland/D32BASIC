@@ -11,8 +11,12 @@ chrout:
         jr z, .file
         dec a                       ; 2: the printer (there is none)
         jr z, .none
+        dec a                       ; 3: FWRITE's file
+        jr z, .rf
         pop af
         jp scrout
+.rf:    pop af
+        jp rfputc
 .none:  pop af
         ret
 .file:  pop af
@@ -154,6 +158,7 @@ inlin:
         ld (inkchr), a
         ld hl, BUF
         ld b, 1                     ; characters + 1
+inlinp:                             ; (AUTO: HL, B with a line begun)
 .next:  call inchr
         ld c, a
         ld a, (eofflg)

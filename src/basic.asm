@@ -40,6 +40,8 @@ ERR_DF  EQU 54                      ; DragonDOS: disk full
 ERR_FS  EQU 56                      ; DragonDOS: bad file name
 ERR_PT  EQU 58                      ; DragonDOS: protected
 ERR_FE  EQU 60                      ; DragonDOS: file exists
+ERR_RE  EQU 62                      ; DragonDOS: read past the end ("FE")
+ERR_TF  EQU 64                      ; DragonDOS: too many files
 
 FORSIZ  EQU 18                      ; bytes in a FOR stack entry
 GOSIZ   EQU 5                       ; bytes in a GOSUB stack entry
@@ -124,6 +126,7 @@ error:
         call stkini
         xor a
         ld (devnum), a
+        call errtrap                    ; ERROR GOTO
         call condcr
         call outqst
         ld hl, errtab
@@ -150,10 +153,10 @@ ready:
         ld hl, msg_ok
         call strout
 main:
-        call inlin                      ; HL = BUF-1, carry = BREAK
+        call autoin                     ; HL = BUF-1, carry = BREAK
         ld de, $FFFF
         ld (curlin), de
-        jr c, main
+        jr c, mainbk
         ld (txtptr), hl
         call chrget
         jr z, .blank
@@ -176,6 +179,7 @@ main:
 ; A numbered line: delete any old line with that number, then insert.
 main1:
         call linget
+        call autend                     ; an empty AUTO line
 edtent: ld hl, (linnum)                 ; (EDIT comes here, TXTPTR = BUF)
         ld a, h                         ; BUFLNM is big-endian
         ld (buflnm), a
@@ -187,6 +191,9 @@ edtent: ld hl, (linnum)                 ; (EDIT comes here, TXTPTR = BUF)
 fini:   call runc
         call cheada
         jp main
+mainbk: xor a                           ; BREAK ends AUTO
+        ld (autofl), a
+        jr main
 
 ; Insert the line in BUFLNM/BUF-1 (A = its length + 4, LINNUM = its
 ; number), replacing any old line with that number. An empty line only
@@ -400,7 +407,7 @@ gone3:
         jp (hl)
 .notst: cp TK_DOSFST
         jp c, snerr
-        cp TK_DOSFST + NUM_DOS
+        cp TK_DOSFST + NUM_DOS + NUM_EXT
         jr nc, .fn
         sub TK_DOSFST - NUM_STM         ; DOS entries follow RENUM's
         jr .disp
@@ -554,6 +561,7 @@ st_clear:
 ; RUN [line]
 st_run:
         push af
+        call errclr
         call xrrun                      ; PLAY and DRAW defaults
         pop af
         jp z, runc
@@ -982,12 +990,13 @@ isletc:
         INCLUDE "bas_trans.asm"
         INCLUDE "bas_edit.asm"
         INCLUDE "bas_using.asm"
+        INCLUDE "bas_ddos.asm"
 
 ; ---- tables and messages ---------------------------------------------------
         INCLUDE "tables_gen.inc"
 
 errtab: db "NFSNRGODFCOVOMULBSDD/0IDTMOSLSSTCNUFFDAODNIOFMNOIEDSNE"
-        db "DFFSPTFE"
+        db "DFFSPTFEFETF"
 msg_error:      db " ERROR", 0
 msg_in:         db " IN ", 0
 msg_ok:         db "OK", 13, 0

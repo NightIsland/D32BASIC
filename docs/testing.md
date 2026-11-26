@@ -72,6 +72,17 @@ It has no disk controller, so anything that needs a disk fails (`DIR`,
 `SWAP`, `HIMEM` and `BEEP`, behave as on a real Dragon with DragonDOS. Like
 the BASIC ROM, the DragonDOS ROM stays a local file and is never committed.
 
+The cases in `tests/dos/` are run this way: `run.py --expected` uses the
+DragonDOS ROM in `D32_DOS` (default `build/oracle/ddos10.rom`) for them and
+stores their output in `tests/expected/` with the others. DragonDOS always
+starts a new line before an error message, where the Dragon ROM (and
+D32BASIC) starts one only if the cursor isn't at the start of a line, so
+`run.py` drops that extra blank line from DragonDOS's output.
+
+The oracle stops once the input is used up and BASIC has polled the
+keyboard 300 times without a key; `WAIT` polls for BREAK, so a case
+shouldn't end with a `WAIT`.
+
 ## Writing cases
 
 * Type only characters a Dragon keyboard has: upper case, digits and the usual

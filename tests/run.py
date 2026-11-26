@@ -9,6 +9,10 @@ two machines, and what BASIC prints is compared:
   * our .NEX (TESTMODE build) runs headless in jnext, reads the same keys
     from AUTOTYPE.TXT and writes everything it prints to a debug port.
 
+Cases under tests/dos/ test the DragonDOS BASIC extras: their expected
+output comes from the Dragon ROM with the DragonDOS cartridge ROM (D32_DOS)
+plugged in, and is stored in tests/expected/ like the others.
+
 Cases under tests/next/ test what the Dragon ROM has no part in (disk
 files, Next hardware). Their expected output, tests/next/NAME.txt, is
 written by hand or checked by hand after "run.py --bless NAME". Files in
@@ -21,20 +25,23 @@ Commands:
   run.py --bless NAME... store our output as the expected output of next cases
   run.py --plumbing      check the harness itself (types and runs a one-line program)
 
-Environment: JNEXT (jnext binary), D32_ROM (oracle ROM image),
+Environment: JNEXT (jnext binary), D32_ROM (oracle ROM image), D32_DOS
+             (DragonDOS cartridge ROM, only to regenerate tests/dos/),
              ORACLE (dragon_oracle binary). Defaults live under build/.
 """
-import difflib, glob, os, shutil, subprocess, sys, tempfile
+import difflib, glob, os, re, shutil, subprocess, sys, tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CASES = os.path.join(ROOT, 'tests', 'cases')
 EXPECTED = os.path.join(ROOT, 'tests', 'expected')
 NEXT = os.path.join(ROOT, 'tests', 'next')
+DOS = os.path.join(ROOT, 'tests', 'dos')
 FILES = os.path.join(NEXT, 'files')
 NEX = os.path.join(ROOT, 'build', 'd32basic-test.nex')
 JNEXT = os.environ.get('JNEXT', 'jnext')
 ORACLE = os.environ.get('ORACLE', os.path.join(ROOT, 'build', 'oracle', 'dragon_oracle'))
 ROM = os.environ.get('D32_ROM', os.path.join(ROOT, 'build', 'oracle', 'd32.rom'))
+DOSROM = os.environ.get('D32_DOS', os.path.join(ROOT, 'build', 'oracle', 'ddos10.rom'))
 DBG_PORT, EXIT_PORT = '0x10EF', '0x11EF'
 FRAMES = os.environ.get('D32_FRAMES', '30000')   # 10 minutes of emulated time
 
@@ -63,10 +70,19 @@ def run_nex(case_path):
 
 
 def run_oracle(case_path):
-    r = subprocess.run([ORACLE, ROM, case_path, "--max-cycles", "20000000000"], capture_output=True, text=True, errors='replace', timeout=600)
+    cmd = [ORACLE, ROM, case_path, "--max-cycles", "20000000000"]
+    if os.path.dirname(case_path) == DOS:
+        cmd += ["--cart", DOSROM]
+    r = subprocess.run(cmd, capture_output=True, text=True, errors='replace', timeout=600)
     if r.returncode:
         sys.exit('oracle failed on %s: %s' % (case_path, r.stderr))
-    return normalise(r.stdout)
+    out = normalise(r.stdout)
+    if os.path.dirname(case_path) == DOS:
+        # DragonDOS always starts a new line before an error message, so
+        # it leaves a blank line where the Dragon ROM (and D32BASIC) does
+        # not. Drop it, keeping only DragonDOS's own behaviour under test.
+        out = re.sub(r'\n\n(\?[A-Z/][A-Z0-9] ERROR)', r'\n\1', out)
+    return out
 
 
 def expected_path(case):
@@ -78,6 +94,7 @@ def expected_path(case):
 
 def cases(names, oracle_only=False):
     all_cases = sorted(glob.glob(os.path.join(CASES, '*.bas')))
+    all_cases += sorted(glob.glob(os.path.join(DOS, '*.bas')))
     if not oracle_only:
         all_cases += sorted(glob.glob(os.path.join(NEXT, '*.bas')))
     if not names:

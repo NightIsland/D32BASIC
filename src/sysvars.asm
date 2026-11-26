@@ -110,8 +110,21 @@ setign:         db 0                ; SETUP: 1 = skip unsupported statements
 setspd:         db 3                ; SETUP: NextREG 7 CPU speed (3 = 28 MHz)
 startdir:       ds 128              ; the start-up folder (F_GETCWD)
 brkflg:         db 0                ; bit 7: print BREAK
-ifcnt:          db 0
-errnum:         db 0                ; error code being reported                ; IFs skipped looking for ELSE
+ifcnt:          db 0                ; IFs skipped looking for ELSE
+errnum:         db 0                ; error code being reported
+errcod:         db 0                ; ERR
+errlin:         dw 0                ; ERL
+traplin:        dw 0                ; ERROR GOTO line (0 = off)
+autofl:         db 0                ; AUTO on
+autonx:         dw 0                ; AUTO: next line number
+autoinc:        dw 0                ; AUTO: step
+walkfn:         dw 0                ; STRWLK: the routine for each string
+chnlen:         dw 0                ; CHAIN: program length
+chnvsz:         dw 0                ; CHAIN: size of the variables
+chndst:         dw 0                ; CHAIN: where the variables wait
+chnlin:         dw 0                ; CHAIN: the line to start at
+chnneed:        dw 0                ; CHAIN: bytes of strings to copy
+cpdst:          db 0                ; COPY: the new file's handle
 txtbeg:         dw 0                ; start of the current statement
 opmask:         db 0                ; FRMEVL: relations seen (> 1, = 2, < 4)
 opptr:          dw 0                ; FRMEVL: operator that ended an operand
@@ -267,6 +280,25 @@ buflnm:         dw 0                ; line number goes here before BUF
 bufmin:         db 0                ; INPUT stores a comma here
 BUF:            ds BUFLEN + 2
 fbuffr:         ds 40               ; number formatting
+
+; ---- DragonDOS random-access files (FREAD, FWRITE, ...) --------------------
+RFMAX           EQU 10              ; files with a read pointer at once
+RFSIZ           EQU 68              ; an entry: the name (64), the pointer (4)
+rftab:          ds RFMAX * RFSIZ    ; a name starting with 0: a free entry
+rfent:          dw 0                ; the entry in use
+rfh:            db 0                ; the esxDOS handle while a file is open
+rfopn:          db 0                ; 1 while it is open
+rfpos:          ds 4                ; where this FREAD/FWRITE starts
+rffrom:         db 0                ; 1 if FROM was given
+rffor:          dw 0                ; FOR length (0: none)
+rfcnt:          dw 0                ; bytes read or written so far
+rfbase:         dw 0                ; RFCNT when the current line began
+rbn:            dw 0                ; bytes left in RFBUF
+rbp:            dw 0                ; the next byte in RFBUF
+rfstat:         ds 11               ; F_FSTAT's result
+rfbuf:          ds 256
+                db 0                ; (FREAD starts with "nothing read")
+rlbuf:          ds BUFLEN + 2       ; FREAD's line (BUF may hold the command)
 
 sysvars_end:
         ASSERT sysvars_end <= $5000

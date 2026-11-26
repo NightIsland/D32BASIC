@@ -50,3 +50,17 @@ Statement keywords are one byte; function keywords are `$FF` then a second byte.
 | $FF $9B | `MEM` | $FF $9C | `VARPTR` | $FF $9D | `INSTR` |
 | $FF $9E | `TIMER` | $FF $9F | `PPOINT` | $FF $A0 | `STRING$` |
 | $FF $A1 | `USR` |  |  |  |  |
+
+## DragonDOS and D32BASIC tokens
+
+DragonDOS 1.0 adds statements `$CE`-`$E7` and functions `$FF $A2`-`$FF $A8`
+(the list is in `tools/mktables.py`, taken from its ROM), so a DragonDOS
+program's bytes mean the same here. D32BASIC's own statements start at `$E8`:
+
+| Token | Keyword | Notes |
+|---|---|---|
+| $E8 | `CD` | A keyword only at the start of a statement, before a quote, the end of the statement, or a space and anything but `=` or `(`. Elsewhere `CD` is a variable name, as on a Dragon. |
+| $E9 | `MKDIR` | |
+
+A program using them lists correctly on a real Dragon with DragonDOS and
+stops there with `?SN ERROR`.

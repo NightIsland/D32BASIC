@@ -2,9 +2,10 @@
 ; Reserved words: last character has bit 7 set.
 
 NUM_STM         EQU 59
-NUM_NORMAL      EQU 104
+NUM_NORMAL      EQU 106
 TK_DOSFST       EQU $CE
 NUM_DOS         EQU 26
+NUM_EXT         EQU 2
 NUM_FUN         EQU 41
 
 TK_FOR          EQU $80
@@ -111,6 +112,8 @@ TK_VERIFY       EQU $E4
 TK_FROM         EQU $E5
 TK_FLREAD       EQU $E6
 TK_SWAP         EQU $E7
+TK_CD           EQU $E8
+TK_MKDIR        EQU $E9
 FN_SGN          EQU $80
 FN_INT          EQU $81
 FN_ABS          EQU $82
@@ -258,6 +261,8 @@ reslst:
         db $46,$52,$4F,$CD   ; FROM
         db $46,$4C,$52,$45,$41,$C4   ; FLREAD
         db $53,$57,$41,$D0   ; SWAP
+        db $43,$C4   ; CD
+        db $4D,$4B,$44,$49,$D2   ; MKDIR
 
 funlst:
         db $53,$47,$CE   ; SGN
@@ -302,7 +307,7 @@ funlst:
         db $4C,$4F,$C3   ; LOC
         db $46,$52,$45,$A4   ; FRE$
 
-; Statement dispatch: $80 to RENUM, then the DragonDOS statements.
+; Statement dispatch: $80 to RENUM, then the DragonDOS statements and our own.
 stmdsp:
         dw st_for        ; FOR
         dw st_go         ; GO
@@ -363,32 +368,34 @@ stmdsp:
         dw st_play       ; PLAY
         dw st_unimpl     ; DLOAD
         dw st_renum      ; RENUM
-        dw st_unimpl     ; AUTO
+        dw st_auto       ; AUTO
         dw st_unimpl     ; BACKUP
-        dw st_unimpl     ; BEEP
+        dw st_beep       ; BEEP
         dw st_unimpl     ; BOOT
-        dw st_unimpl     ; CHAIN
-        dw st_unimpl     ; COPY
-        dw st_unimpl     ; CREATE
+        dw st_chain      ; CHAIN
+        dw st_copy       ; COPY
+        dw st_create     ; CREATE
         dw st_dir        ; DIR
         dw st_unimpl     ; DRIVE
         dw st_unimpl     ; DSKINIT
-        dw st_unimpl     ; FREAD
-        dw st_unimpl     ; FWRITE
-        dw st_unimpl     ; ERROR
+        dw st_fread      ; FREAD
+        dw st_fwrite     ; FWRITE
+        dw st_error      ; ERROR
         dw st_kill       ; KILL
         dw st_load       ; LOAD
         dw st_merge      ; MERGE
-        dw st_unimpl     ; PROTECT
-        dw st_unimpl     ; WAIT
+        dw st_protect    ; PROTECT
+        dw st_wait       ; WAIT
         dw st_rename     ; RENAME
         dw st_save       ; SAVE
         dw st_unimpl     ; SREAD
         dw st_unimpl     ; SWRITE
-        dw st_unimpl     ; VERIFY
+        dw st_verify     ; VERIFY
         dw st_unimpl     ; FROM
-        dw st_unimpl     ; FLREAD
-        dw st_unimpl     ; SWAP
+        dw st_flread     ; FLREAD
+        dw st_swap       ; SWAP
+        dw st_cd         ; CD
+        dw st_mkdir      ; MKDIR
 
 ; Function dispatch.
 fundsp:
@@ -426,10 +433,10 @@ fundsp:
         dw fn_ppoint     ; PPOINT
         dw fn_string     ; STRING$
         dw fn_usr        ; USR
-        dw fn_unimpl     ; LOF
-        dw fn_unimpl     ; FREE
-        dw fn_unimpl     ; ERL
-        dw fn_unimpl     ; ERR
-        dw fn_unimpl     ; HIMEM
-        dw fn_unimpl     ; LOC
-        dw fn_unimpl     ; FRE$
+        dw fn_lof        ; LOF
+        dw fn_free       ; FREE
+        dw fn_erl        ; ERL
+        dw fn_err        ; ERR
+        dw fn_himem      ; HIMEM
+        dw fn_loc        ; LOC
+        dw fn_fres       ; FRE$

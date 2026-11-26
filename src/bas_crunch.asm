@@ -144,7 +144,16 @@ crunch:
         ld a, $FF
         ld (invnam), a
         jp .loop
-.found: pop af                      ; drop the start pointer
+.found: ld a, (funflg)
+        or a
+        jr nz, .found2
+        ld a, b
+        cp TK_CD & $7F
+        jr nz, .found2
+        call cdword                     ; CD is only sometimes a keyword
+        jr nz, .notfnd
+.found2:
+        pop af                          ; drop the start pointer
         pop de
         ld a, b
         or $80
@@ -180,6 +189,58 @@ crunch:
         cp TK_REM
         jp z, .skprem
         jp .loop
+
+; CD is a keyword only where it cannot be a variable: at the start of a
+; statement, followed by a quote, the end of the statement, or a space and
+; then anything but '=' or '('. HL = the text after "CD"; the stack holds
+; (under the return address) the start of the word and the BUF pointer.
+; Z if CD is the keyword here. Keeps B and HL.
+cdword: push hl
+        ld a, (hl)
+        cp '"'
+        jr z, .start
+        or a
+        jr z, .start
+        cp ':'
+        jr z, .start
+        cp ' '
+        jr nz, .no
+.sp:    inc hl
+        ld a, (hl)
+        cp ' '
+        jr z, .sp
+        cp '='
+        jr z, .no
+        cp '('
+        jr z, .no
+.start: ld hl, 6                        ; the BUF pointer
+        add hl, sp
+        ld a, (hl)
+        inc hl
+        ld h, (hl)
+        ld l, a
+.back:  dec hl                          ; what came before, skipping spaces
+        push hl
+        ld de, BUF - 1
+        or a
+        sbc hl, de
+        pop hl
+        jr c, .yes                      ; the start of the line
+        ld a, (hl)
+        cp ' '
+        jr z, .back
+        cp ':'
+        jr z, .yes
+        cp TK_THEN
+        jr z, .yes
+        cp TK_ELSE
+        jr z, .yes
+.no:    pop hl
+        or 1
+        ret
+.yes:   pop hl
+        xor a
+        ret
 
 ; DCRNCH: expand the program line at HL into BUF as ASCII, zero-terminated.
 ; Returns HL = the line's link address (unchanged by this routine's caller).
