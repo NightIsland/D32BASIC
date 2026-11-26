@@ -76,4 +76,21 @@ The esxDOS calls run with interrupts off and the ROM paged in for each call.
     `10 PRINT "SECOND";A`: prints FIRST, then SECOND 5.
 26. `PRINT FREE` shows the free space on the card (in bytes).
 
+## PMODE 5 (256 colours)
+
+For each of these, type the lines then `RUN`; line 90 keeps the picture on
+screen until you press BREAK.
+
+27. `10 PMODE 5:PCLS:SCREEN 1:FOR C=0 TO 255:COLOR C:LINE(C,0)-(C,191),PSET:NEXT`
+    and `90 GOTO 90`: 256 stripes, black, then the eight Dragon colours,
+    then the Next's colours. BREAK brings the text screen back as normal.
+28. `10 PMODE 5:PCLS 2:CIRCLE(128,96),80,3:PAINT(128,96),4,3:SCREEN 1` and
+    `90 GOTO 90`: a red disc with a blue ring on yellow.
+29. The animation in docs/next-extensions.md ("Two screens"): a circle
+    moves smoothly across with no flicker or tearing.
+30. `10 PMODE 5,2:PCLS 3:PCOPY 2 TO 1:PMODE 5,1:SCREEN 1:FOR I=1 TO 3000:NEXT`,
+    `20 PMODE 4,1:PCLS:LINE(0,0)-(255,191),PSET:SCREEN 1` and `90 GOTO 90`:
+    the whole screen is blue for a moment, then a normal PMODE 4 page with
+    a green line. After BREAK the text screen looks right.
+
 Report anything odd with what was typed and what happened.

@@ -22,8 +22,12 @@ Version 1.1 adds the DragonDOS BASIC extras: `ERROR GOTO`, `ERR`, `ERL`, `SWAP`,
 `AUTO`, `BEEP`, `WAIT`, `CHAIN`, `COPY`, `FREE`, `HIMEM`, `FRE$`,
 random-access files (`CREATE`, `FREAD`, `FWRITE`, `FLREAD`, `LOF`, `LOC`)
 and two folder commands of our own, `CD` and `MKDIR`; see
-[docs/dragondos.md](docs/dragondos.md). Next come the Next hardware
-extensions: see [docs/ROADMAP.md](docs/ROADMAP.md).
+[docs/dragondos.md](docs/dragondos.md).
+
+The Next hardware extensions have started: `PMODE 5` gives a 256x192
+screen in 256 colours, with two screens for flicker-free animation. See
+[docs/next-extensions.md](docs/next-extensions.md) and
+[docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Using it
 
@@ -58,6 +62,7 @@ regenerate expected output.
 * [docs/spec/float.md](docs/spec/float.md): the floating point format and maths
 * [docs/spec/memory-map.md](docs/spec/memory-map.md): how the Next's memory, screen and hardware are used
 * [docs/dragondos.md](docs/dragondos.md): the DragonDOS commands, and how they differ
+* [docs/next-extensions.md](docs/next-extensions.md): the Next extensions, such as `PMODE 5`
 * [docs/testing.md](docs/testing.md): the test harness
 * [docs/ks3-checklist.md](docs/ks3-checklist.md): checks to run on a real Next
 

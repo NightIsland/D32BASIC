@@ -51,7 +51,7 @@ RUN
  3  3  0  0  0  1  0  0 -1 
 DONE
 OK
-PMODE 5
+PMODE 9
 ?FC ERROR
 OK
 PMODE 4,8

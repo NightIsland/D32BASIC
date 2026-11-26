@@ -6,6 +6,8 @@ TESTMODE        EQU 0
 ; Ports used only by TESTMODE builds, watched by the jnext test harness.
 DBG_PORT        EQU $10EF           ; text written here goes to the harness log
 EXIT_PORT       EQU $11EF           ; writing here ends the run; value = exit code
+SHOT_PORT       EQU $12EF           ; written as graphics leave the screen: the
+                                    ; harness takes a screenshot at the frame's end
 
 ; esxDOS calls (RST $08 then this byte) and F_OPEN modes.
 F_OPEN          EQU $9A

@@ -21,7 +21,7 @@ How D32BASIC uses the Next's memory, screen and hardware.
 | Slots | Addresses | Contents |
 |---|---|---|
 | 0-1 | `$0000-$3FFF` | Interpreter core (RAM pages 16-17 over the ROM area): the interrupt handler at `$0038`, the interpreter loop, tokeniser, expressions, maths, strings, `PRINT`/`INPUT`, `EDIT`, `RENUM`. |
-| 2-3 | `$4000-$7FFF` | Bank 5: system variables, the 512-byte text screen buffer and line buffer (`$4000-$4FFF`), then more code: screen and keyboard drivers, SD files, graphics, `PLAY`/`SOUND`. |
+| 2-3 | `$4000-$7FFF` | Bank 5: system variables, the 512-byte text screen buffer and line buffer, then the Next extensions' code (`$4000-$4FFF`), then more code from `$5000`: screen and keyboard drivers, SD files, graphics, `PLAY`/`SOUND`. |
 | 4-7 | `$8000-$FFEF` | BASIC workspace, laid out as on a Dragon: graphics pages first, then program text, variables, arrays, free space, the stack and string space at the top. |
 
 ### Graphics pages are in the workspace, as on a Dragon
@@ -45,7 +45,9 @@ Dragon's answers.
 | Page | Use |
 |---|---|
 | 16-17 | Interpreter core (slots 0-1). |
-| 18-23 (banks 9-11) | Layer 2, 256x192. Written through the Layer 2 write window (port `$123B`), never mapped over the workspace. |
+| 18-23 (banks 9-11) | Layer 2, 256x192: the text screen and PMODE 0-4. Written through the Layer 2 write window (port `$123B`), never mapped over the workspace. |
+| 24-29 (banks 12-14) | PMODE 5 screen 1: a whole 256x192 Layer 2 picture, one byte a point. |
+| 32-37 (banks 16-18) | PMODE 5 screen 2. |
 | 30 | Test builds only: the keystrokes typed by the harness (`AUTOTYPE.TXT`), read a byte at a time through slot 0. |
 
 Dragon programs often reserve memory for machine code with `CLEAR n,addr`,
@@ -65,8 +67,18 @@ with `POKE` to the Dragon's I/O area (`$FF00` up) are ignored.
 * **PMODE graphics:** PMODE 0-4 resolutions and colour sets, drawn into the
   same Layer 2 bitmap (lower resolutions are pixel-doubled). `SCREEN 1`
   shows the graphics page, `SCREEN 0` the text.
-* **Later (Next extensions):** new PMODE numbers for Next modes such as
-  256x192 in 256 colours, 320x256 and sprites, kept isolated from the core.
+* **PMODE 5 (Next extension):** 256x192 in 256 colours. Each of its two
+  screens is a whole Layer 2 picture in its own banks, so `SCREEN 1` just
+  points NextREG `$12` at it and drawing on the screen on show appears at
+  once. The drawing code reaches a point by paging its 8K into slot 1
+  (`$2000-$3FFF`) for a moment; that code is in bank 5 and the frame
+  interrupt never touches slot 1, so interrupts stay on. Colours come from
+  Layer 2's second palette (0 black, 1-8 the Dragon's colours, 9-255 the
+  standard RRRGGGBB colours), which only PMODE 5 shows. The global
+  transparency colour (NextREG `$14`) is `$01`, which neither Layer 2
+  palette holds. See [next-extensions.md](../next-extensions.md).
+* **Later (Next extensions):** `PMODE 6` and `7` (320x256 and 640x256),
+  sprites and wider text, kept isolated from the core.
 
 ## Other hardware
 

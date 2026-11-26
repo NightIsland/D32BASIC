@@ -21,6 +21,7 @@
    that need no disk are checked against the real DragonDOS 1.0 ROM. See
    [dragondos.md](dragondos.md).
 4. **Next extensions**, in small phases, each using only values a Dragon
-   refuses so no Dragon program changes: `PMODE 5` (256x192 in 256 colours),
-   `PLAY` with three voices, a mouse through `JOYSTK`, `PALETTE`, `PMODE 6`
-   and `7` (320x256 and 640x256), hardware sprites, and `WIDTH 40`/`80`.
+   refuses so no Dragon program changes: `PMODE 5` (256x192 in 256 colours,
+   *done*), `PLAY` with three voices, a mouse through `JOYSTK`, `PALETTE`,
+   `PMODE 6` and `7` (320x256 and 640x256), hardware sprites, and
+   `WIDTH 40`/`80`. See [next-extensions.md](next-extensions.md).

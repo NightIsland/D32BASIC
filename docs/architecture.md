@@ -28,6 +28,9 @@ registers, cassette hardware, and tricks that depend on poking video hardware.
     src/            Z80N source (main.asm includes everything)
     tests/cases/    BASIC test programs, typed as keystrokes
     tests/expected/ what the real Dragon ROM printed for each case
+    tests/dos/      DragonDOS cases, checked against the DragonDOS ROM
+    tests/next/     cases for what a Dragon lacks (SD files, extensions)
+    tests/pictures/ cases that also check a screenshot, pixel for pixel
     tests/run.py    the harness
     tools/oracle/   the 6809 oracle: ROM builder and headless runner
     docs/           specs and design notes

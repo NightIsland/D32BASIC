@@ -19,6 +19,16 @@ dbg_putc:
         pop bc
         ret
 
+; Graphics are leaving the screen: ask the harness for a screenshot, taken
+; at the end of this frame, and keep the picture until then.
+tshot:  push bc
+        ld bc, SHOT_PORT
+        out (c), a
+        pop bc
+        halt
+        halt
+        ret
+
 ; End the test run with exit code A.
 test_exit:
         ld bc, EXIT_PORT

@@ -300,5 +300,13 @@ rfbuf:          ds 256
                 db 0                ; (FREAD starts with "nothing read")
 rlbuf:          ds BUFLEN + 2       ; FREAD's line (BUF may hold the command)
 
+; ---- Next extensions: PMODE 5 (ext_pmode5.asm) ---------------------------
+p5page:         db 0                ; PMODE 5 screen drawn on: 0 or 1
+p5draw:         db 0                ; its first 8K page
+dsp5pg:         db 0                ; the PMODE 5 screen SCREEN 1 shows
+p5shwn:         db 0                ; the one Layer 2 shows now (0: none)
+p5cols:         dw 0                ; GET/PUT: points a row
+p5rows:         db 0                ; GET/PUT: rows
+
 sysvars_end:
         ASSERT sysvars_end <= $5000

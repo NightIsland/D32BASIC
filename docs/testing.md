@@ -83,6 +83,21 @@ The oracle stops once the input is used up and BASIC has polled the
 keyboard 300 times without a key; `WAIT` polls for BREAK, so a case
 shouldn't end with a `WAIT`.
 
+## Picture tests
+
+The Dragon ROM can't check pictures, and the Next extensions have no Dragon
+to compare with, so the cases in `tests/pictures/` also check what is on the
+screen. Whenever graphics leave the screen (a program ends and prints `OK`,
+or `PRINT` brings the text back), the TESTMODE build writes to `SHOT_PORT`
+(`$12EF`) and waits for the frame to end; the harness has jnext save a
+screenshot then. The last one must match `tests/pictures/NAME.png` pixel for
+pixel, and the printed output must match `NAME.txt`.
+
+    python3 tests/run.py --bless p5draw   # store a new picture and output
+
+Look at the picture before committing it. When a picture test fails, the
+picture it got is saved in `build/pictures/` to compare.
+
 ## Writing cases
 
 * Type only characters a Dragon keyboard has: upper case, digits and the usual
