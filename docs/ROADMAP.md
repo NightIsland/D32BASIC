@@ -13,7 +13,7 @@
    and `SOUND` on the AY chip; the text-screen block graphics (`SET`,
    `RESET`, `POINT`), `EDIT`, `LINE INPUT`, `JOYSTK`; checks on a real Next;
    a release `.NEX`; the settings screen on the GRAPH key.
-3b. **DragonDOS extras** *(built; KS3 check next)*: the DragonDOS BASIC
+3b. **DragonDOS extras** *(done: version 1.1, checked on a KS3 Next)*: the DragonDOS BASIC
    commands that make sense on an SD card: `ERROR GOTO`, `ERR`, `ERL`,
    `SWAP`, `AUTO`, `BEEP`, `WAIT`, `CHAIN`, `COPY`, `FREE`, `HIMEM`, `FRE$`,
    random-access files (`CREATE`, `FREAD`, `FWRITE`, `FLREAD`, `LOF`,

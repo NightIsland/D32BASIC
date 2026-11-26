@@ -9,9 +9,8 @@ on the SD card. It aims to run Dragon BASIC *programs* (not Dragon machine-code
 software), with the authentic 32x16 green screen, PMODE graphics, `PLAY` and
 `SOUND`. Later versions will add Next hardware features through new PMODEs.
 
-**Status:** version 1.0, the first complete release, checked on a real Next
-(KS3). You can type, edit, run, save and load Dragon BASIC programs:
-the whole core language, PMODE graphics (`PSET`, `LINE`, `CIRCLE`, `PAINT`,
+**Status:** version 1.1, checked on a real Next (KS3). You can type, edit,
+run, save and load Dragon BASIC programs: the whole core language, PMODE graphics (`PSET`, `LINE`, `CIRCLE`, `PAINT`,
 `DRAW`, `GET`/`PUT`, `PCOPY` and the rest, byte-identical to a Dragon), the
 text-screen block graphics, `PLAY` and `SOUND` on the AY chip, `EDIT`,
 `LINE INPUT`, `JOYSTK`, and SD card files (`SAVE`, `LOAD`, `MERGE`, `DIR`,
@@ -19,7 +18,7 @@ text-screen block graphics, `PLAY` and `SOUND` on the AY chip, `EDIT`,
 The GRAPH key opens a settings screen for the files folder (on any drive),
 the CPU speed and whether unsupported commands are skipped.
 
-Since 1.0, the DragonDOS BASIC extras: `ERROR GOTO`, `ERR`, `ERL`, `SWAP`,
+Version 1.1 adds the DragonDOS BASIC extras: `ERROR GOTO`, `ERR`, `ERL`, `SWAP`,
 `AUTO`, `BEEP`, `WAIT`, `CHAIN`, `COPY`, `FREE`, `HIMEM`, `FRE$`,
 random-access files (`CREATE`, `FREAD`, `FWRITE`, `FLREAD`, `LOF`, `LOC`)
 and two folder commands of our own, `CD` and `MKDIR`; see
