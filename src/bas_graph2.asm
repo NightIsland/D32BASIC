@@ -49,7 +49,10 @@ gget:   ld (gtptfl), a
         ld (putac1), a
         call chrget
         jr .cn2
-.bytes: ld b, $F8                   ; whole bytes: round X down to one
+.bytes: ld a, (scmode)
+        cp 5
+        jr z, .cn2                  ; PMODE 5: a byte a point
+        ld b, $F8                   ; whole bytes: round X down to one
         ld a, (scmode)
         rra
         jr nc, .bw
@@ -70,6 +73,9 @@ gget:   ld (gtptfl), a
         ld hl, (y2stor)
         ld (ystore), hl
 .yok:   ld (y2stor), de
+        ld a, (scmode)
+        cp 5
+        jp z, p5gtpt
         ld a, (scmode)              ; two bits a point in colour
         rra
         jr nc, .sc
@@ -504,7 +510,10 @@ scncon: ld (pcnt2), hl
         ret
 
 ; Z if XSTORE,YSTORE has the border colour. HL, A = the point.
-tstbrd: call genadr
+tstbrd: ld a, (scmode)
+        cp 5
+        jp z, p5brd
+        call genadr
         ld b, a
         ld a, (pntclr)
         and b

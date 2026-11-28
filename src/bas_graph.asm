@@ -36,6 +36,7 @@ grinit:
         ld bc, $3000 - 1
         ld (hl), 0
         ldir
+        call p5init
         jp txtcol
 
 ; ---- coordinates ---------------------------------------------------------------
@@ -101,7 +102,10 @@ crdget: ld hl, (lsavex)
 
 ; HL = address of the byte holding the scaled point XSTORE/YSTORE, A = the
 ; bits of that point in it. Preserves BC.
-genadr: ld a, (ystore)
+genadr: ld a, (scmode)
+        cp 5
+        jr z, .p5
+        ld a, (ystore)
         ld l, a
         ld h, 0
         add hl, hl
@@ -146,10 +150,18 @@ genadr: ld a, (ystore)
         rrca
         rrca
         jr .cl
+.p5:    ld a, (ystore)              ; PMODE 5: H = y, L = x
+        ld h, a
+        ld a, (xstore)
+        ld l, a
+        ld a, $FF
+        ret
 
 ; Move the point at HL/A one place right (A = its bits). Preserves BC, DE.
 ginx:   push af
         ld a, (scmode)
+        cp 5
+        jr z, .p5
         rra
         jr c, .col
         pop af
@@ -163,10 +175,16 @@ ginx:   push af
         ret nc
         inc hl
         ret
+.p5:    pop af
+        inc l
+        ret
 
 ; Move HL down one row. Preserves all but HL.
 ginyl:  push de
         push af
+        ld a, (scmode)
+        cp 5
+        jr z, .p5
         ld a, (scwid)
         ld e, a
         ld d, 0
@@ -174,10 +192,19 @@ ginyl:  push de
         pop af
         pop de
         ret
+.p5:    inc h
+        pop af
+        pop de
+        ret
 
 ; Set the point at HL (bits A) to the active colour. PNTCHF records any
 ; change. Preserves all but the flags.
 grpact: push af
+        ld a, (scmode)
+        cp 5
+        jr z, .p5
+        pop af
+        push af
         push bc
         push de
         ld b, a
@@ -198,11 +225,16 @@ grpact: push af
         pop bc
         pop af
         ret
+.p5:    pop af
+        jp p5pact
 
 ; ---- colours -------------------------------------------------------------------
 ; Read a colour 0-8 into E as the mode's colour number 0-3.
 getclr: call getbyt
-getclx: ld a, e
+getclx: ld a, (scmode)
+        cp 5
+        ret z                       ; PMODE 5: 0-255 as they are
+        ld a, e
         cp 9
         jp nc, fcerr
         cp 5
@@ -234,6 +266,11 @@ defcol: ld a, (setflg)
         jr nz, deffor
         ld a, (bakclr)
 deffor: ld (actclr), a
+        ld e, a
+        ld a, (scmode)
+        cp 5
+        ld a, e
+        jr z, .p5
         and 3
         ld e, a
         add a, a
@@ -245,7 +282,7 @@ deffor: ld (actclr), a
         add a, a
         add a, a
         or e
-        ld (actcle), a
+.p5:    ld (actcle), a
         ret
 
 ; An optional ",colour" before ')' or the end.
@@ -347,6 +384,7 @@ st_pmode:
         call getbyt
         ld a, e
         cp 5
+        jp z, p5pmod
         jp nc, fcerr
         ld hl, scrtab
         add a, a
@@ -378,7 +416,10 @@ st_pmode:
         ld (forclr), a
         call chrgot
         ret z
-.page:  call chkcom
+.page:  ld a, (scmode)
+        cp 5
+        jp z, p5pgn
+        call chkcom
         call getbyt
         ld a, e
         or a
@@ -438,26 +479,36 @@ setcss: ld a, (sccss)
 samalp: ld a, (dspon)
         or a
         ret z
+    IF TESTMODE
+        call tshot
+    ENDIF
         xor a
         ld (dspon), a
         ld (piacss), a
         call txtcol
+        ld a, (p5shwn)              ; draw the text out of sight
+        or a
+        call z, l2back
+        call render_all
+        ld a, (p5shwn)              ; then show it
+        or a
+        call nz, p5off
         ld a, (l2_scroll)
-        nextreg $17, a
-        jp render_all
+        jp l2show
 
 ; Show the current PMODE page.
 samgrp: ld hl, (scbase)
         ld (dspbase), hl
         ld hl, (sctop)
         ld (dsptop), hl
+        ld a, (p5draw)
+        ld (dsp5pg), a
         ld a, (scmode)
         ld (dspmode), a
         ld a, (sccss)
         ld (piacss), a
         ld a, 1
         ld (dspon), a
-        nextreg $17, 0
         jp grall
 
 ; The text colours for the colour set: green or orange.
@@ -490,7 +541,10 @@ st_pcls:
         ld e, a
         jr z, .fill
         call getclr
-.fill:  ld a, e
+.fill:  ld a, (scmode)
+        cp 5
+        ld a, e
+        jp z, p5pcls
         call deffor
         ld a, (actcle)
         ld hl, (scbase)
@@ -514,6 +568,9 @@ st_pcls:
 
 ; PCOPY page TO page
 st_pcopy:
+        ld a, (scmode)
+        cp 5
+        jp z, p5pcop
         call pcopr
         push hl
         ld a, TK_TO
@@ -572,6 +629,11 @@ fn_ppoint:
         call onecrd
         call gscale
         call genadr
+        ld c, a
+        ld a, (scmode)
+        cp 5
+        jp z, p5ppnt
+        ld a, c
         and (hl)
         ld c, a
         ld a, (scmode)
@@ -958,6 +1020,9 @@ gr_pal: db $1C, $FC, $03, $E0, $DB, $1F, $E3, $F0
 gdirty: ld a, (dspon)
         or a
         ret z
+        ld a, (dspmode)
+        cp 5
+        ret z                       ; PMODE 5 is drawn in place
         push de
         ld de, (dspbase)
         or a
@@ -973,7 +1038,13 @@ gdirty: ld a, (dspon)
         ret
 
 ; Redraw the whole graphics display.
-grall:  ld hl, (dspbase)
+grall:  ld a, (dspmode)
+        cp 5
+        jp z, p5disp
+        ld a, (p5shwn)              ; draw out of sight
+        or a
+        call z, l2back
+        ld hl, (dspbase)
 .lp:    call grbyte
         inc hl
         ld de, (dsptop)
@@ -983,7 +1054,11 @@ grall:  ld hl, (dspbase)
         ld a, h
         cp d
         jr nz, .lp
-        ret
+        ld a, (p5shwn)              ; then show it
+        or a
+        call nz, p5off
+        xor a
+        jp l2show
 
 ; Draw graphics byte HL (within the display) on Layer 2. Preserves all
 ; but AF.
@@ -1102,7 +1177,7 @@ grbyte: push bc
         push de
         ld d, a
         and $C0
-        or 3
+        or $0B                      ; write-map on, into NR $13's banks
         ld b, high L2_PORT
         push bc
         ld bc, L2_PORT

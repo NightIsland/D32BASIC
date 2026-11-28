@@ -3,10 +3,12 @@
 ;
 ; Memory map (see docs/spec/memory-map.md):
 ;   $0000-$3FFF  interpreter core, RAM pages 16-17 paged over the ROM area
-;   $4000-$4FFF  bank 5: text screen buffer and system variables
+;   $4000-$4FFF  bank 5: text screen buffer, system variables, extensions
 ;   $5000-$7FFF  bank 5: boot code, the runtime and more interpreter code
 ;   $8000-$FFFF  BASIC workspace (program, variables, stack, strings)
-; Layer 2 (256x192) lives in banks 9-11.
+; Layer 2 (256x192) lives in banks 9-11 and 19-21 (two pictures, so
+; SCREEN can draw out of sight); the PMODE 5 screens in banks 12-14 and
+; 16-18.
 
         DEVICE ZXSPECTRUMNEXT
         OPT --zxnext
@@ -42,8 +44,12 @@ boot:
         nextreg $50, CORE_PAGE          ; core code over the ROM area
         nextreg $51, CORE_PAGE + 1
         nextreg $12, L2_BANK            ; Layer 2: 256x192, banks 9-11
+        nextreg $13, L2_BANK            ; and every write goes there (see
+        ld a, L2_BANK                   ; rt_flip.asm)
+        ld (l2cur), a
         nextreg $70, 0
-        nextreg $14, $25                ; transparency: a colour we never use
+        nextreg $14, $01                ; transparency: a colour neither Layer 2
+                                        ; palette holds
         nextreg $16, 0
         nextreg $17, 0
         nextreg $1C, 1                  ; reset the Layer 2 clip window
@@ -73,6 +79,15 @@ boot:
     ENDIF
 bank5_code_end:
         ASSERT bank5_code_end <= $8000
+
+; Next extensions, in bank 5 just after the system variables. Their code
+; may page screen memory into slot 1 ($2000-$3FFF) for a moment, so the
+; frame interrupt and everything it calls must stay out of slot 1.
+        ORG sysvars_end
+        INCLUDE "rt_flip.asm"
+        INCLUDE "ext_pmode5.asm"
+ext_code_end:
+        ASSERT ext_code_end <= $5000
 
 ; ===========================================================================
 ; Core: RAM pages 16-17 at $0000-$3FFF

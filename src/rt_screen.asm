@@ -157,7 +157,7 @@ l2span: push af
         ld a, (rc_y)
         ld d, a
         and $C0                     ; which 64-line third
-        or 3                        ; write-map on, Layer 2 visible
+        or $0B                      ; write-map on (NR $13's banks), visible
         ld bc, L2_PORT
         out (c), a
         ld a, d
@@ -283,7 +283,7 @@ cellcol:
 ; Paint all of Layer 2 colour A, a third (16K) at a time through the
 ; write window at $0000.
 l2fill: ld e, a
-        ld d, $03                   ; write map on, third 0
+        ld d, $0B                   ; write map on (NR $13's banks), third 0
 .third: ld bc, L2_PORT
         out (c), d
         ld hl, 0
@@ -303,7 +303,7 @@ l2fill: ld e, a
         ld a, d
         add a, $40
         ld d, a
-        cp $C3
+        cp $CB
         jr nz, .third
         ld a, 2                     ; write map off, Layer 2 visible
         out (c), a
@@ -458,7 +458,7 @@ render_cell:
         ld a, (rc_y)
         ld e, a
         and $C0                     ; which 64-line third
-        or 3                        ; write-map on, Layer 2 visible
+        or $0B                      ; write-map on (NR $13's banks), visible
         ld bc, L2_PORT
         out (c), a
         ld a, e

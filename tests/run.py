@@ -18,6 +18,11 @@ files, Next hardware). Their expected output, tests/next/NAME.txt, is
 written by hand or checked by hand after "run.py --bless NAME". Files in
 tests/next/files/ are put beside the .NEX for every run, as the SD card.
 
+Cases under tests/pictures/ are next cases that also check a picture. Each
+time graphics leave the screen, the TESTMODE build writes to SHOT_PORT and
+jnext saves a screenshot; the last one must match tests/pictures/NAME.png
+pixel for pixel (and the printed output NAME.txt). "--bless" stores both.
+
 Commands:
   run.py                 run every case against the .NEX (default)
   run.py CASE...         run only the named cases
@@ -37,12 +42,14 @@ EXPECTED = os.path.join(ROOT, 'tests', 'expected')
 NEXT = os.path.join(ROOT, 'tests', 'next')
 DOS = os.path.join(ROOT, 'tests', 'dos')
 FILES = os.path.join(NEXT, 'files')
+PICS = os.path.join(ROOT, 'tests', 'pictures')
+FAILED_PICS = os.path.join(ROOT, 'build', 'pictures')
 NEX = os.path.join(ROOT, 'build', 'd32basic-test.nex')
 JNEXT = os.environ.get('JNEXT', 'jnext')
 ORACLE = os.environ.get('ORACLE', os.path.join(ROOT, 'build', 'oracle', 'dragon_oracle'))
 ROM = os.environ.get('D32_ROM', os.path.join(ROOT, 'build', 'oracle', 'd32.rom'))
 DOSROM = os.environ.get('D32_DOS', os.path.join(ROOT, 'build', 'oracle', 'ddos10.rom'))
-DBG_PORT, EXIT_PORT = '0x10EF', '0x11EF'
+DBG_PORT, EXIT_PORT, SHOT_PORT = '0x10EF', '0x11EF', '0x12EF'
 FRAMES = os.environ.get('D32_FRAMES', '30000')   # 10 minutes of emulated time
 
 
@@ -50,7 +57,9 @@ def normalise(text):
     return text.replace('\r\n', '\n').replace('\r', '\n')
 
 
-def run_nex(case_path):
+def run_nex(case_path, picture=False):
+    """Run a case: (exit code, output), plus the last screenshot's PNG
+    bytes (or None) if picture is set."""
     with tempfile.TemporaryDirectory() as td:
         shutil.copy(NEX, td)
         shutil.copy(case_path, os.path.join(td, 'AUTOTYPE.TXT'))
@@ -58,6 +67,9 @@ def run_nex(case_path):
             shutil.copy(f, td)
         with open(os.path.join(td, 'exit.jds'), 'w') as f:
             f.write('on io_write %s do\n    exit VALUE\nend\n' % EXIT_PORT)
+            if picture:
+                f.write('on io_write %s do\n    screenshot "%s"\nend\n'
+                        % (SHOT_PORT, os.path.join(td, 'shot.png')))
         cmd = [JNEXT, '--headless', '--no-sdcard',
                '--load', os.path.join(td, os.path.basename(NEX)),
                '--esxdos-stub-root', td, '--esxdos-stub-writable',
@@ -66,7 +78,19 @@ def run_nex(case_path):
                '--delayed-automatic-exit-frames', FRAMES,
                '--log-file', os.path.join(td, 'jnext.log')]
         r = subprocess.run(cmd, capture_output=True, text=True, errors='replace', timeout=600)
-        return r.returncode, normalise(r.stderr)
+        if not picture:
+            return r.returncode, normalise(r.stderr)
+        shot = os.path.join(td, 'shot.png')
+        png = open(shot, 'rb').read() if os.path.exists(shot) else None
+        return r.returncode, normalise(r.stderr), png
+
+
+def pixels(png):
+    """The size and RGB pixels of PNG bytes, for comparing pictures."""
+    import io
+    from PIL import Image
+    im = Image.open(io.BytesIO(png)).convert('RGB')
+    return im.size, im.tobytes()
 
 
 def run_oracle(case_path):
@@ -87,8 +111,8 @@ def run_oracle(case_path):
 
 def expected_path(case):
     name = os.path.splitext(os.path.basename(case))[0]
-    if os.path.dirname(case) == NEXT:
-        return os.path.join(NEXT, name + '.txt')
+    if os.path.dirname(case) in (NEXT, PICS):
+        return os.path.join(os.path.dirname(case), name + '.txt')
     return os.path.join(EXPECTED, name + '.txt')
 
 
@@ -97,6 +121,7 @@ def cases(names, oracle_only=False):
     all_cases += sorted(glob.glob(os.path.join(DOS, '*.bas')))
     if not oracle_only:
         all_cases += sorted(glob.glob(os.path.join(NEXT, '*.bas')))
+        all_cases += sorted(glob.glob(os.path.join(PICS, '*.bas')))
     if not names:
         return all_cases
     return [c for c in all_cases if any(os.path.basename(c).startswith(n) for n in names)]
@@ -113,9 +138,16 @@ def main(argv):
         return 0
     if '--bless' in argv:
         for c in cases([a for a in argv if not a.startswith('--')]):
-            if os.path.dirname(c) != NEXT:
+            if os.path.dirname(c) == NEXT:
+                rc, out = run_nex(c)
+            elif os.path.dirname(c) == PICS:
+                rc, out, png = run_nex(c, picture=True)
+                if png is None:
+                    print('no picture from', os.path.basename(c))
+                    continue
+                open(os.path.splitext(c)[0] + '.png', 'wb').write(png)
+            else:
                 continue
-            rc, out = run_nex(c)
             open(expected_path(c), 'w').write(out)
             print('blessed', os.path.basename(c), '(exit %d)' % rc)
         return 0
@@ -131,9 +163,22 @@ def main(argv):
     for c in cases(argv):
         name = os.path.splitext(os.path.basename(c))[0]
         want = open(expected_path(c)).read()
-        rc, got = run_nex(c)
-        if rc == 0 and got == want:
+        picok = True
+        if os.path.dirname(c) == PICS:
+            rc, got, png = run_nex(c, picture=True)
+            picok = png is not None and \
+                pixels(png) == pixels(open(os.path.splitext(c)[0] + '.png', 'rb').read())
+            if not picok and png is not None:
+                os.makedirs(FAILED_PICS, exist_ok=True)
+                open(os.path.join(FAILED_PICS, name + '.png'), 'wb').write(png)
+        else:
+            rc, got = run_nex(c)
+        if rc == 0 and got == want and picok:
             print('PASS', name)
+        elif rc == 0 and got == want:
+            failed.append(name)
+            print('FAIL', name, '(picture differs: build/pictures/%s.png)' % name
+                  if png else '(no picture)')
         else:
             failed.append(name)
             print('FAIL', name, '(exit %d)' % rc if rc else '')
