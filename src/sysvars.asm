@@ -22,6 +22,7 @@ SCREND          EQU SCRADR + 512
 ; ---- hardware / runtime state --------------------------------------------
 curadr:         dw 0                ; cursor address in SCRADR
 l2_scroll:      db 0                ; Layer 2 Y offset (multiple of 12)
+l2cur:          db 0                ; Layer 2 picture written to: bank 9 or 19
 cblcnt:         db 0                ; cursor blink counter
 allock:         db 0                ; alpha lock: nonzero = upper case
 ticker:         dw 0                ; 50 Hz tick counter (TIMER)

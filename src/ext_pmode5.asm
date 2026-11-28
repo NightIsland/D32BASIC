@@ -106,8 +106,7 @@ p5disp: ld a, (p5shwn)
 ; Back to the text screen's Layer 2 and palette.
 p5off:  xor a
         ld (p5shwn), a
-        nextreg $12, L2_BANK
-        nextreg $43, 0
+        nextreg $43, 0              ; (the caller shows L2CUR)
         ret
 
 ; ---- points -------------------------------------------------------------------------

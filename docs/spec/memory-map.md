@@ -46,6 +46,7 @@ Dragon's answers.
 |---|---|
 | 16-17 | Interpreter core (slots 0-1). |
 | 18-23 (banks 9-11) | Layer 2, 256x192: the text screen and PMODE 0-4. Written through the Layer 2 write window (port `$123B`), never mapped over the workspace. |
+| 38-43 (banks 19-21) | A second copy of that picture. Writes go to the copy NextREG `$13` names, which is the one on show; `SCREEN`, or the text coming back, draws the whole new picture into the other copy and then shows it, so the change is instant, as on a Dragon (`rt_flip.asm`). |
 | 24-29 (banks 12-14) | PMODE 5 screen 1: a whole 256x192 Layer 2 picture, one byte a point. |
 | 32-37 (banks 16-18) | PMODE 5 screen 2. |
 | 30 | Test builds only: the keystrokes typed by the harness (`AUTOTYPE.TXT`), read a byte at a time through slot 0. |

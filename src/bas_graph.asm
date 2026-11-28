@@ -486,17 +486,15 @@ samalp: ld a, (dspon)
         ld (dspon), a
         ld (piacss), a
         call txtcol
-        ld a, (p5shwn)
+        ld a, (p5shwn)              ; draw the text out of sight
         or a
-        jr z, .txt
-        call render_all             ; from PMODE 5: draw the text out of
-        call p5off                  ; sight, then show it
+        call z, l2back
+        call render_all
+        ld a, (p5shwn)              ; then show it
+        or a
+        call nz, p5off
         ld a, (l2_scroll)
-        nextreg $17, a
-        ret
-.txt:   ld a, (l2_scroll)
-        nextreg $17, a
-        jp render_all
+        jp l2show
 
 ; Show the current PMODE page.
 samgrp: ld hl, (scbase)
@@ -511,7 +509,6 @@ samgrp: ld hl, (scbase)
         ld (piacss), a
         ld a, 1
         ld (dspon), a
-        nextreg $17, 0
         jp grall
 
 ; The text colours for the colour set: green or orange.
@@ -1044,6 +1041,9 @@ gdirty: ld a, (dspon)
 grall:  ld a, (dspmode)
         cp 5
         jp z, p5disp
+        ld a, (p5shwn)              ; draw out of sight
+        or a
+        call z, l2back
         ld hl, (dspbase)
 .lp:    call grbyte
         inc hl
@@ -1054,10 +1054,11 @@ grall:  ld a, (dspmode)
         ld a, h
         cp d
         jr nz, .lp
-        ld a, (p5shwn)              ; leaving a PMODE 5 screen: switch only
-        or a                        ; now the picture is ready
+        ld a, (p5shwn)              ; then show it
+        or a
         call nz, p5off
-        ret
+        xor a
+        jp l2show
 
 ; Draw graphics byte HL (within the display) on Layer 2. Preserves all
 ; but AF.

@@ -97,5 +97,12 @@ screen until you press BREAK.
     `20 PMODE 4,1:PCLS:LINE(0,0)-(255,191),PSET:SCREEN 1` and `90 GOTO 90`:
     the whole screen is blue for a moment, then a normal PMODE 4 page with
     a green line. After BREAK the text screen looks right.
+31. Instant screen changes: `10 PMODE 3,1:PCLS:SCREEN 1,0:CIRCLE(128,96),60,4`,
+    `20 FOR I=1 TO 2000:NEXT:PMODE 4,1:PCLS:LINE(0,0)-(255,191),PSET:SCREEN 1`,
+    `30 FOR I=1 TO 2000:NEXT:PRINT "BACK"`, `RUN`: text, the circle, the
+    line and the text again each appear at once, with no wipe down the
+    screen. Then press GRAPH while line 10's circle shows (add
+    `15 GOTO 15` to hold it): the settings screen, and BREAK brings the
+    circle back.
 
 Report anything odd with what was typed and what happened.
