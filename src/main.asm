@@ -43,6 +43,8 @@ boot:
         nextreg $50, CORE_PAGE          ; core code over the ROM area
         nextreg $51, CORE_PAGE + 1
         nextreg $12, L2_BANK            ; Layer 2: 256x192, banks 9-11
+        nextreg $13, L2_BANK            ; and every write goes there, even
+                                        ; while a PMODE 5 screen is shown
         nextreg $70, 0
         nextreg $14, $01                ; transparency: a colour neither Layer 2
                                         ; palette holds

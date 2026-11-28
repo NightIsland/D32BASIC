@@ -86,8 +86,13 @@ screen until you press BREAK.
     then the Next's colours. BREAK brings the text screen back as normal.
 28. `10 PMODE 5:PCLS 2:CIRCLE(128,96),80,3:PAINT(128,96),4,3:SCREEN 1` and
     `90 GOTO 90`: a red disc with a blue ring on yellow.
-29. The animation in docs/next-extensions.md ("Two screens"): a circle
-    moves smoothly across with no flicker or tearing.
+29. Smooth animation on two screens: type
+    `10 PMODE 5,1:SCREEN 1:S=1:X=0`,
+    `20 S=3-S:PMODE 5,S:PCLS`,
+    `30 CIRCLE(X,96),20,X AND 255:X=X+4:IF X>255 THEN X=0` and
+    `40 SCREEN 1:GOTO 20`, then `RUN`. A circle moves steadily left to right
+    across a black screen, changing colour, with no flicker, no tearing (a
+    break across the circle) and no blank frames. BREAK to stop.
 30. `10 PMODE 5,2:PCLS 3:PCOPY 2 TO 1:PMODE 5,1:SCREEN 1:FOR I=1 TO 3000:NEXT`,
     `20 PMODE 4,1:PCLS:LINE(0,0)-(255,191),PSET:SCREEN 1` and `90 GOTO 90`:
     the whole screen is blue for a moment, then a normal PMODE 4 page with

@@ -482,14 +482,19 @@ samalp: ld a, (dspon)
     IF TESTMODE
         call tshot
     ENDIF
-        ld a, (dspmode)
-        cp 5
-        call z, p5off
         xor a
         ld (dspon), a
         ld (piacss), a
         call txtcol
+        ld a, (p5shwn)
+        or a
+        jr z, .txt
+        call render_all             ; from PMODE 5: draw the text out of
+        call p5off                  ; sight, then show it
         ld a, (l2_scroll)
+        nextreg $17, a
+        ret
+.txt:   ld a, (l2_scroll)
         nextreg $17, a
         jp render_all
 
@@ -1039,9 +1044,6 @@ gdirty: ld a, (dspon)
 grall:  ld a, (dspmode)
         cp 5
         jp z, p5disp
-        ld a, (p5shwn)              ; leaving a PMODE 5 screen
-        or a
-        call nz, p5off
         ld hl, (dspbase)
 .lp:    call grbyte
         inc hl
@@ -1052,6 +1054,9 @@ grall:  ld a, (dspmode)
         ld a, h
         cp d
         jr nz, .lp
+        ld a, (p5shwn)              ; leaving a PMODE 5 screen: switch only
+        or a                        ; now the picture is ready
+        call nz, p5off
         ret
 
 ; Draw graphics byte HL (within the display) on Layer 2. Preserves all
@@ -1171,7 +1176,7 @@ grbyte: push bc
         push de
         ld d, a
         and $C0
-        or 3
+        or $0B                      ; write-map on, into NR $13's banks
         ld b, high L2_PORT
         push bc
         ld bc, L2_PORT
